@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { authService } from "@/services/auth.service";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { authService } from "@/services/auth.service";
 
 export default function LoginPage() {
   const router = useRouter();
