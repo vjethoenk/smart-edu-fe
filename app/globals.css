@@ -13,7 +13,7 @@
 }
 
 :root {
-  --primary: 243 75% 59%; 
+  --primary: 243 75% 59%;
   --primary-foreground: 0 0% 100%;
 
   --background: 0 0% 100%;
@@ -27,5 +27,27 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+  }
+}
+@layer base {
+  .material-symbols-outlined {
+    font-variation-settings:
+      "FILL" 0,
+      "wght" 400,
+      "GRAD" 0,
+      "opsz" 24;
+    display: inline-block;
+  }
+  .fill-1 {
+    font-variation-settings: "FILL" 1 !important;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
   }
 }

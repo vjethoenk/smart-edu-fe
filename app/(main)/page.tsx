@@ -1,3 +1,9 @@
+import Hero from "./components/Hero";
+
 export default function HomePage() {
-  return <div>Trang chủ Smart-Edu</div>;
+  return (
+    <>
+      <Hero></Hero>
+    </>
+  );
 }
