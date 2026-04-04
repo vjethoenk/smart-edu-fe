@@ -7,6 +7,9 @@ export interface IAuth {
   access_token: string;
   user: IUser;
 }
+export interface IAccount {
+  user: IUser;
+}
 export interface IUser {
   _id: string;
   name: string;
@@ -15,4 +18,12 @@ export interface IUser {
     _id: string;
     name: string;
   };
+}
+
+export interface ICategory {
+  _id: string;
+  name: string;
+  description: string;
+  createdAt?: string;
+  updatedAt?: string;
 }

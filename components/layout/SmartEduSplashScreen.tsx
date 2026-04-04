@@ -10,16 +10,14 @@ interface SplashScreenProps {
   finishLoading: () => void;
 }
 
-// 1. Hàm tạo dữ liệu hạt tuyết ngẫu nhiên để không bị trùng lặp khi re-render
 const generateParticles = (count: number) => {
   return Array.from({ length: count }).map((_, i) => ({
     id: i,
-    size: Math.random() * 6 + 2, // Làm hạt nhỏ lại một chút cho tinh tế
-    left: Math.random() * 100, // Phủ toàn bộ chiều ngang 0-100%
-    // ⬇️ GIẢM THỜI GIAN: Bay nhanh hơn (từ 3s đến 7s thay vì 10s-18s)
+    size: Math.random() * 6 + 2,
+    left: Math.random() * 100,
     duration: Math.random() * 4 + 3,
     delay: Math.random() * 5,
-    initialY: 110, // Bắt đầu ngay dưới mép màn hình
+    initialY: 110,
   }));
 };
 
@@ -34,7 +32,8 @@ export default function SmartEduSplashScreen({
     const timer = setTimeout(() => {
       setIsVisible(false);
       setTimeout(finishLoading, 500);
-    }, 5000);
+    }, 3000);
+
     return () => clearTimeout(timer);
   }, [finishLoading]);
 

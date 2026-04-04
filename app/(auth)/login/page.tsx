@@ -8,9 +8,11 @@ import { Eye, Mail, Lock, GraduationCap } from "lucide-react";
 import Link from "next/link";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const { mutate, isPending } = useLogin();
+  const router = useRouter();
 
   const handleLogin = () => {
     if (!email || !password) {
@@ -23,10 +25,10 @@ export default function LoginPage() {
       {
         onSuccess: (res) => {
           const userName = res?.data?.user?.name;
-          console.log("Res", res);
           toast.success(`Chào mừng ${userName} quay trở lại!`, {
             description: "Đăng nhập thành công.",
           });
+          router.push("/");
         },
         onError: (error: any) => {
           const message =

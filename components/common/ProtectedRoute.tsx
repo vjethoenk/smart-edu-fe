@@ -3,6 +3,7 @@
 import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Cookies from "js-cookie";
 
 export default function ProtectedRoute({
   children,
@@ -12,13 +13,15 @@ export default function ProtectedRoute({
   allowedRoles: string[];
 }) {
   const router = useRouter();
-  const role = useSelector((state: any) => state.auth.role);
+  const reduxRole = useSelector((state: any) => state.auth.role);
+
+  const currentRole = reduxRole || Cookies.get("role");
 
   useEffect(() => {
-    if (!role || !allowedRoles.includes(role)) {
+    if (!currentRole || !allowedRoles.includes(currentRole)) {
       router.push("/unauthorized");
     }
-  }, [role]);
+  }, [currentRole]);
 
   return <>{children}</>;
 }

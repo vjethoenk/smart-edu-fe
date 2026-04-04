@@ -1,9 +1,12 @@
 import Hero from "./components/Hero";
+import Navbar from "./components/Navbar";
 
-export default function HomePage() {
+export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      <Hero></Hero>
-    </>
+    <div>
+      <Navbar />
+      <Hero />
+      <main>{children}</main>
+    </div>
   );
 }

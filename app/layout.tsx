@@ -1,39 +1,21 @@
-"use client";
-import { useEffect, useState } from "react";
 import "./globals.css";
-import Providers from "./providers";
-import { Toaster } from "@/components/ui/sonner";
-import LoadingScreen from "@/components/layout/LoadingScreen";
-import { AnimatePresence } from "framer-motion";
-import SmartEduSplashScreen from "@/components/layout/SmartEduSplashScreen";
+import ClientWrapper from "@/components/layout/ClientWrapper";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Smart Edu",
+  description: "Hệ thống quản lý giáo dục thông minh",
+};
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [isLoading, setIsLoading] = useState(true);
-
-  const handleFinishLoading = () => {
-    setIsLoading(false);
-  };
-
   return (
-    <html lang="vi">
-      <body>
-        <AnimatePresence mode="wait">
-          {isLoading ? (
-            <SmartEduSplashScreen
-              key="splash"
-              finishLoading={handleFinishLoading}
-            />
-          ) : (
-            <div key="content" className="relative z-0">
-              <Providers>{children}</Providers>
-              <Toaster position="top-center" richColors expand={true} />
-            </div>
-          )}
-        </AnimatePresence>
+    <html lang="vi" suppressHydrationWarning>
+      <body className="antialiased">
+        <ClientWrapper>{children}</ClientWrapper>
       </body>
     </html>
   );

@@ -4,7 +4,9 @@ const URL = process.env.NEXT_PUBLIC_API_URL;
 
 const instance = axios.create({
   baseURL: URL,
+  withCredentials: true,
 });
+
 // Add a request interceptor
 instance.interceptors.request.use(
   function (config) {
