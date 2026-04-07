@@ -1,8 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
 import { loginApi } from "./api";
 import { useDispatch } from "react-redux";
-import { setAuth } from "./slice";
+import { setAuth, logout } from "./slice";
 import Cookies from "js-cookie";
+import { clearAuthData } from "@/lib/auth-utils";
 
 export const useLogin = () => {
   const dispatch = useDispatch();
@@ -25,4 +26,13 @@ export const useLogin = () => {
       }
     },
   });
+};
+
+export const useLogout = () => {
+  const dispatch = useDispatch();
+
+  return () => {
+    clearAuthData();
+    dispatch(logout());
+  };
 };

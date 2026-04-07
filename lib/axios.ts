@@ -1,4 +1,5 @@
 import axios from "axios";
+import { clearAuthData } from "./auth-utils";
 
 const URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -33,6 +34,15 @@ instance.interceptors.response.use(
     return response;
   },
   function (error) {
+    // Handle 401 (Unauthorized) - token expired or invalid
+    if (error?.response?.status === 401) {
+      clearAuthData();
+      // Redirect to home page
+      if (typeof window !== "undefined") {
+        window.location.href = "/";
+      }
+    }
+
     // Any status codes that falls outside the range of 2xx cause this function to trigger
     // Do something with response error
     if (error && error.response && error.response.data) {

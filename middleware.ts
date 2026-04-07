@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { isTokenValid } from "@/lib/jwt";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -7,28 +8,34 @@ export function middleware(request: NextRequest) {
   const accessToken = request.cookies.get("access_token")?.value;
   const role = request.cookies.get("role")?.value?.trim().toUpperCase();
 
-  console.log("--- DEBUG MIDDLEWARE ---");
-  console.log("Pathname:", pathname);
-  console.log("Token exists:", !!accessToken);
-  console.log("Role value:", role);
+  // Check if token is expired
+  const tokenExpired = !isTokenValid(accessToken);
 
   if (pathname.startsWith("/admin")) {
-    if (!accessToken) {
-      return NextResponse.redirect(new URL("/login", request.url));
+    // If no token or token expired, redirect to home
+    if (!accessToken || tokenExpired) {
+      const response = NextResponse.redirect(new URL("/", request.url));
+      // Clear expired token from cookies
+      response.cookies.delete("access_token");
+      response.cookies.delete("role");
+      return response;
     }
 
-    // Dùng includes hoặc so sánh chuẩn hóa
     const isAdmin = role === "ADMIN";
 
     if (!isAdmin) {
-      console.log("CHẶN ADMIN VÌ ROLE KHÔNG KHỚP:", role);
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
   }
 
   if (pathname.startsWith("/teacher")) {
-    if (!accessToken) {
-      return NextResponse.redirect(new URL("/login", request.url));
+    // If no token or token expired, redirect to home
+    if (!accessToken || tokenExpired) {
+      const response = NextResponse.redirect(new URL("/", request.url));
+      // Clear expired token from cookies
+      response.cookies.delete("access_token");
+      response.cookies.delete("role");
+      return response;
     }
 
     if (role !== "TEACHER") {

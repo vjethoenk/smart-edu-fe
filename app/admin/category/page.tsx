@@ -1,21 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Trash2, Edit2 } from "lucide-react";
-import CategoryModal from "../components/CategoryModal";
+import { Loader2, Trash2, Edit2, Plus, Cat } from "lucide-react";
 import { useGetCategories, useDeleteCategory } from "@/features/category/hook";
 import { ICategory } from "@/types/api";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { CategoryModal } from "../components/CategoryModal";
 
 export default function CategoryPage() {
   const { data: categories, isLoading, isError } = useGetCategories();
-  console.log("Categories:", categories);
   const deleteMutation = useDeleteCategory();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<ICategory | null>(
     null,
   );
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleDeleteCategory = (id: string) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
@@ -28,13 +28,14 @@ export default function CategoryPage() {
     setIsModalOpen(true);
   };
 
-  const handleModalClose = () => {
+  const handleAddCategory = () => {
     setEditingCategory(null);
+    setIsModalOpen(true);
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-[60vh]">
         <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
       </div>
     );
@@ -49,74 +50,98 @@ export default function CategoryPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Quản lý danh mục</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Quản lý danh mục
+          </h1>
           <p className="text-gray-500 mt-1">
             Tổng: {categories?.length || 0} danh mục
           </p>
         </div>
-        <CategoryModal onOpenChange={handleModalClose} />
+
+        <Button
+          className="flex items-center justify-center gap-2"
+          onClick={handleAddCategory}
+        >
+          <Plus className="w-4 h-4" /> Thêm danh mục
+        </Button>
+
+        <CategoryModal
+          isOpen={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          category={editingCategory}
+        />
       </div>
 
       {categories && categories.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {categories.map((category) => (
             <Card
               key={category._id}
-              className="p-6 hover:shadow-lg transition-shadow"
+              className="
+    group rounded-2xl bg-white
+    shadow-md hover:shadow-2xl hover:-translate-y-1
+    transition-all duration-300
+  "
             >
-              <div className="space-y-3">
-                <h3 className="font-semibold text-lg truncate">
-                  {category.name}
-                </h3>
-                <p className="text-sm text-gray-600 line-clamp-2">
-                  {category.description || "Không có mô tả"}
-                </p>
+              <CardContent className="p-5 flex flex-col h-full">
+                {/* Header */}
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-3">
+                    {/* Icon */}
 
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 flex items-center gap-2"
-                    onClick={() => handleEditCategory(category)}
-                  >
-                    <Edit2 className="h-4 w-4" />
-                    Sửa
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="flex-1 flex items-center gap-2"
-                    onClick={() => handleDeleteCategory(category._id)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Xóa
-                  </Button>
+                    <div>
+                      <h3 className="text-base font-semibold text-gray-900">
+                        {category.name}
+                      </h3>
+                      <p className="text-sm text-gray-500 line-clamp-1">
+                        {category.description || "Không có mô tả"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-1 ">
+                    <button
+                      onClick={() => handleEditCategory(category)}
+                      className="p-2 rounded-lg hover:bg-gray-100 transition"
+                    >
+                      <Edit2 className="h-4 w-4 text-gray-500" />
+                    </button>
+
+                    <button
+                      onClick={() => handleDeleteCategory(category._id)}
+                      className="p-2 rounded-lg hover:bg-red-50 transition"
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </button>
+                  </div>
                 </div>
-              </div>
+
+                {/* Content spacing */}
+                <div className="mt-4 flex items-center justify-between text-sm">
+                  <span className="text-gray-400">
+                    #{category._id.slice(-5)}
+                  </span>
+
+                  <span
+                    className="px-2 py-1 text-xs font-medium 
+                      bg-blue-50 text-blue-600 rounded-md"
+                  >
+                    Category
+                  </span>
+                </div>
+              </CardContent>
             </Card>
           ))}
         </div>
       ) : (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg">
+        <div className="flex flex-col items-center justify-center py-20 border border-dashed rounded-2xl bg-gray-50">
           <p className="text-gray-500 mb-4">Chưa có danh mục nào</p>
-          <CategoryModal onOpenChange={handleModalClose} />
+          <Button onClick={handleAddCategory}>Thêm danh mục ngay</Button>
         </div>
-      )}
-
-      {editingCategory && (
-        <CategoryModal
-          key={editingCategory._id}
-          category={editingCategory}
-          onOpenChange={(open) => {
-            if (!open) {
-              setEditingCategory(null);
-            }
-          }}
-        />
       )}
     </div>
   );

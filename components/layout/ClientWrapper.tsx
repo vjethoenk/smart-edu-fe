@@ -30,7 +30,7 @@ export default function ClientWrapper({
 
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 3000);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [pathname]);
