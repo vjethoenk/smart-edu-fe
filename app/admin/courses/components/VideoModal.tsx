@@ -1,24 +1,41 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Video, Link2, FileText, Heading, Upload, Loader2 } from "lucide-react";
-import { useCreateLesson, useUploadVideo } from "@/features/lesson/hook";
+import {
+  useCreateLesson,
+  useGetByIdLesson,
+  useUpdateLesson,
+  useUploadVideo,
+} from "@/features/lesson/hook";
 import { useCourseStore } from "@/features/course/store";
 import { EActiveView } from "@/features/course/enum";
 
-const VideoModal = ({
-  sectionId,
-  type,
-}: {
-  sectionId: string;
+interface IPops {
+  sectionId?: string;
   type: string;
-}) => {
+  lessonId?: string;
+}
+const VideoModal = (props: IPops) => {
+  const { sectionId = "", type, lessonId = "" } = props;
+  const { data: lessonDetail } = useGetByIdLesson(lessonId);
+  const { mutate: uploadLesson } = useUpdateLesson();
   const [form, setForm] = useState({
     title: "",
     content: "",
     videoUrl: "",
   });
+
+  useEffect(() => {
+    if (lessonId && lessonDetail) {
+      setForm({
+        title: lessonDetail.title,
+        content: lessonDetail.content,
+        videoUrl: lessonDetail.videoUrl || "",
+      });
+    }
+  }, [lessonId, lessonDetail]);
 
   const { setActiveView, courseId } = useCourseStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,6 +70,20 @@ const VideoModal = ({
       courseId,
     };
     createLesson(payload);
+    setIsSubmitting(false);
+    setActiveView(EActiveView.NONE);
+    setForm({ title: "", content: "", videoUrl: "" });
+  };
+
+  const handleUpdateLesson = async () => {
+    if (!lessonId) return;
+    const payload = {
+      ...form,
+      sectionId,
+      type: "video",
+      courseId,
+    };
+    uploadLesson({ id: lessonId, data: payload });
     setIsSubmitting(false);
     setActiveView(EActiveView.NONE);
     setForm({ title: "", content: "", videoUrl: "" });
@@ -148,23 +179,28 @@ const VideoModal = ({
       <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-100">
         <Button
           variant="outline"
-          onClick={() => setForm({ title: "", content: "", videoUrl: "" })}
-          className="border-gray-200 text-gray-600 transition-all hover:border-gray-300 hover:bg-gray-50"
+          onClick={() => {
+            setForm({ title: "", content: "", videoUrl: "" });
+            setActiveView(EActiveView.NONE);
+          }}
+          className="border-gray-200 text-gray-600 transition-all hover:border-gray-300 hover:bg-gray-50 course-pointer "
         >
-          Nhập lại
+          Hủy bỏ
         </Button>
         <Button
-          onClick={handleSubmit}
+          onClick={lessonId ? handleUpdateLesson : handleSubmit}
           disabled={!form.title || !form.videoUrl || isSubmitting}
-          className="bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md transition-all hover:from-blue-600 hover:to-blue-700 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-gradient-to-r course-pointer  from-blue-500 to-blue-600 text-white shadow-md transition-all hover:from-blue-600 hover:to-blue-700 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (
             <div className="flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin" />
               Đang xử lý...
             </div>
+          ) : lessonId ? (
+            "Cập nhật bài học"
           ) : (
-            "Thêm video ngay"
+            "Tạo bài học"
           )}
         </Button>
       </div>

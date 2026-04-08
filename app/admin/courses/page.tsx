@@ -113,11 +113,10 @@ const CoursePage = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
                     <span
-                      className={`absolute left-4 top-4 rounded-full px-2.5 py-1 text-xs  shadow-md ${
-                        course.isPublished
-                          ? "bg-emerald-500 text-white"
-                          : "bg-amber-500 text-white"
-                      }`}
+                      className={`absolute left-4 top-4 rounded-full px-2.5 py-1 text-xs  shadow-md ${course.isPublished
+                        ? "bg-emerald-500 text-white"
+                        : "bg-amber-500 text-white"
+                        }`}
                     >
                       {course.isPublished ? "Đã duyệt" : "Chưa duyệt"}
                     </span>
@@ -135,7 +134,7 @@ const CoursePage = () => {
                       </div>
                       <div className="shrink-0 rounded-lg bg-slate-100 px-3 py-1.5 text-right">
                         <p className="font-bold text-slate-800">
-                          {course?.price || "0"}đ
+                          {Number(course?.price || 0).toLocaleString("vi-VN")}đ
                         </p>
                         {/* <p className="text-[10px] font-medium text-slate-400">
                           Giá
@@ -150,8 +149,9 @@ const CoursePage = () => {
                           <FolderOpen className="h-3.5 w-3.5" /> Danh mục
                         </span>
                         <span className="font-medium text-slate-700">
-                          {categoryMap.get(course.categoryId) ||
-                            course.categoryId}
+                          {typeof course.categoryId === 'object'
+                            ? (course.categoryId as any).name
+                            : categoryMap.get(course.categoryId as string) || String(course.categoryId)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
@@ -191,7 +191,7 @@ const CoursePage = () => {
                       <Button
                         variant="destructive"
                         onClick={() => handleDeleteCourse(course._id)}
-                        className="col-span-2 bg-gradient-to-r from-rose-500 to-rose-400 shadow-sm transition-all hover:from-rose-600 hover:to-rose-700"
+                        className="col-span-2 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 py-2"
                       >
                         <Trash2 className="mr-2 h-3.5 w-3.5" /> Xóa khóa học
                       </Button>

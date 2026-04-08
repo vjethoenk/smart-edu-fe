@@ -3,16 +3,18 @@ import {
   createLessonApi,
   deleteLessonApi,
   getLessonApi,
+  getLessonByIdApi,
   updateLessonApi,
   uploadVideoApi,
 } from "./api";
 import { toast } from "sonner";
+import { ILesson } from "@/types/api";
 
-export const useGetLessons = (id: string) => {
+export const useGetLessons = () => {
   return useQuery({
     queryKey: ["Lessons"],
     queryFn: async () => {
-      const res = await getLessonApi(id);
+      const res = await getLessonApi();
       return res.data;
     },
   });
@@ -37,11 +39,23 @@ export const useCreateLesson = () => {
   });
 };
 
+export const useGetByIdLesson = (id?: string) => {
+  return useQuery({
+    queryKey: ["Lessons", id],
+    queryFn: async () => {
+      if (!id) return null;
+      const res = await getLessonByIdApi(id);
+      return res.data;
+    },
+    enabled: !!id,
+  });
+};
+
 export const useUpdateLesson = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: ILesson }) =>
       updateLessonApi(id, data),
     onSuccess: (data, variables: any) => {
       const courseId = variables.data?.courseId;

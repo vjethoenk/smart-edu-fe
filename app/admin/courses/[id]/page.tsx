@@ -55,6 +55,7 @@ const CourseDetailPage = () => {
   const { activeView, setActiveView, setCourseId } = useCourseStore();
   const [selectedType, setSelectedType] = useState("");
   const [selectedSectionId, setSelectedSectionId] = useState("");
+  const [lessonId, setLessonId] = useState("");
 
   const { mutate: createSection } = useCreateSection();
   const { data: coursesDetail } = useGetByIdCourse(courseId);
@@ -85,6 +86,10 @@ const CourseDetailPage = () => {
 
   const openLessonTypeSelector = () => {
     setActiveView(EActiveView.LESSON_TYPE_SELECTOR);
+  };
+
+  const openViewLesson = () => {
+    setActiveView(EActiveView.VIEW_LESSON);
   };
 
   const renderLeftContent = () => {
@@ -132,6 +137,15 @@ const CourseDetailPage = () => {
         };
         return <div>{modalLabels[selectedType] || null}</div>;
 
+      case "view_lesson":
+        return (
+          <VideoModal
+            lessonId={lessonId}
+            type={selectedType}
+            sectionId={selectedSectionId}
+          />
+        );
+
       default:
         return null;
     }
@@ -169,8 +183,13 @@ const CourseDetailPage = () => {
                   <div className="space-y-2">
                     {s.lessons?.map((l) => (
                       <div
-                        className="flex border border-gray-300 items-center justify-between p-2 rounded-lg hover:bg-gray-100"
+                        className="flex border border-gray-300 items-center justify-between p-2 rounded-lg hover:bg-gray-100 cursor-pointer"
                         key={l._id}
+                        onClick={() => {
+                          openViewLesson();
+                          setLessonId(l._id as string);
+                          setSelectedSectionId(s._id as string);
+                        }}
                       >
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <GripVertical className="w-3 h-3 opacity-50" />

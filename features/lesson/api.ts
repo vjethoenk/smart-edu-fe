@@ -1,8 +1,12 @@
 import axiosClient from "@/lib/axios";
 import { ApiResponse, ILesson } from "@/types/api";
 
-export const getLessonApi = (id: string) => {
-  return axiosClient.get<ApiResponse<ILesson[]>>(`/v1/lessons/${id}`);
+export const getLessonApi = () => {
+  return axiosClient.get<ApiResponse<ILesson[]>>(`/v1/lessons`);
+};
+
+export const getLessonByIdApi = (id: string) => {
+  return axiosClient.get<ApiResponse<ILesson>>(`/v1/lessons/${id}`);
 };
 
 export const createLessonApi = (data: ILesson) => {

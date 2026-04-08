@@ -54,8 +54,8 @@ export interface ILesson {
   _id?: string;
   title: string;
   content: string;
-  sectionId: string;
+  sectionId?: string;
   videoUrl?: string;
-  type: string;
+  type?: string;
   createdAt?: string;
 }
