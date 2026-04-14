@@ -5,3 +5,8 @@ export enum EActiveView {
   MODAL = "modal",
   VIEW_LESSON = "view_lesson",
 }
+export enum ApprovalStatus {
+  PENDING = "pending",
+  IN_REVIEW = "inReview",
+  APPROVED = "approved",
+}

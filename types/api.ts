@@ -3,6 +3,13 @@ export interface ApiResponse<T> {
   message: string;
   data: T;
 }
+
+export interface QuestionResponse {
+  data: IQuestion[];
+  total: number;
+  skip: number;
+  limit: number;
+}
 export interface IAuth {
   access_token: string;
   user: IUser;
@@ -40,6 +47,11 @@ export interface ICourse {
   createdAt?: string;
   updatedAt?: string;
   sections?: ISection[];
+  status?: string;
+  createBy: {
+    _id: string;
+    email: string;
+  };
 }
 
 export interface ISection {
@@ -58,4 +70,13 @@ export interface ILesson {
   videoUrl?: string;
   type?: string;
   createdAt?: string;
+}
+
+export interface IQuestion {
+  _id?: string;
+  content: string;
+  options: string[];
+  score: number;
+  correctAnswer: string;
+  status?: string;
 }

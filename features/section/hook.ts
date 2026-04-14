@@ -4,7 +4,6 @@ import {
   deleteSectionApi,
   getSectionApi,
   updateSectionApi,
-  uploadImageApi,
 } from "./api";
 import { toast } from "sonner";
 

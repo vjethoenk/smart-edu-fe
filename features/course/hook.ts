@@ -4,10 +4,13 @@ import {
   deleteCourseApi,
   getCoursesApi,
   getCoursesByIdApi,
+  updateApprovalApi,
   updateCourseApi,
   uploadImageApi,
 } from "./api";
 import { toast } from "sonner";
+import { ExpandIcon } from "lucide-react";
+import { queryClient } from "@/lib/react-query";
 
 export const useGetCourses = () => {
   return useQuery({
@@ -53,6 +56,22 @@ export const useUpdateCourse = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["courses"] });
       toast.success("Cập nhật khóa học thành công");
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Có lỗi xảy ra");
+    },
+  });
+};
+
+export const useUpdateApprovalCourse = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      updateApprovalApi(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["courses"] });
+      toast.success("Trình duyệt thành công");
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || "Có lỗi xảy ra");

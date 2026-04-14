@@ -40,6 +40,12 @@ export const deleteCourseApi = (id: string) => {
   return axiosClient.delete<any, ApiResponse<void>>(`/v1/courses/${id}`);
 };
 
+export const updateApprovalApi = (id: string, status: string) => {
+  return axiosClient.put(`/v1/courses/approval/${id}`, {
+    status,
+  });
+};
+
 export const uploadImageApi = (file: FormData) => {
   return axiosClient.post<any, ApiResponse<{ url: string }>>(
     "/v1/upload/image",

@@ -12,18 +12,24 @@ import {
   User,
   FolderOpen,
 } from "lucide-react";
-import { useGetCourses, useDeleteCourse } from "@/features/course/hook";
+import {
+  useGetCourses,
+  useDeleteCourse,
+  useUpdateApprovalCourse,
+} from "@/features/course/hook";
 import { useGetCategories } from "@/features/category/hook";
 import { ICourse } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CourseModal } from "./components/CourseModal";
 import { useRouter } from "next/navigation";
+import { ApprovalStatus } from "@/features/course/enum";
 
 const CoursePage = () => {
   const router = useRouter();
   const { data: courses, isLoading, isError } = useGetCourses();
   const { data: categories } = useGetCategories();
+  const updateApproval = useUpdateApprovalCourse();
   const deleteMutation = useDeleteCourse();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,6 +55,9 @@ const CoursePage = () => {
     router.push(`/admin/courses/${id}`);
   };
 
+  const handleApproval = async (id: string) => {
+    await updateApproval.mutateAsync({ id, status: ApprovalStatus.IN_REVIEW });
+  };
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
@@ -71,7 +80,7 @@ const CoursePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8">
-      <div className="mx-auto max-w-7xl space-y-8">
+      <div className="mx-auto space-y-8">
         {/* Header Section - Redesigned */}
         <div className="flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
           <div>
@@ -105,7 +114,10 @@ const CoursePage = () => {
                 className="group overflow-hidden p-0 rounded-2xl border-0 bg-white shadow-md transition-all duration-300 hover:shadow-2xl hover:shadow-slate-200"
               >
                 <CardContent className="p-0">
-                  <div className="relative overflow-hidden">
+                  <div
+                    className="relative overflow-hidden cursor-pointer"
+                    onClick={() => handleManageContent(course._id)}
+                  >
                     <img
                       src={course.thumbnail}
                       alt={course.title}
@@ -113,18 +125,28 @@ const CoursePage = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
                     <span
-                      className={`absolute left-4 top-4 rounded-full px-2.5 py-1 text-xs  shadow-md ${course.isPublished
-                        ? "bg-emerald-500 text-white"
-                        : "bg-amber-500 text-white"
-                        }`}
+                      className={`absolute left-4 top-4 rounded-full px-2.5 py-1 text-xs  shadow-md ${
+                        course.status === ApprovalStatus.APPROVED
+                          ? "bg-emerald-500 text-white"
+                          : course.status === ApprovalStatus.IN_REVIEW
+                            ? "bg-amber-500 text-white"
+                            : "bg-gray-500 text-white"
+                      }`}
                     >
-                      {course.isPublished ? "Đã duyệt" : "Chưa duyệt"}
+                      {course.status === ApprovalStatus.APPROVED
+                        ? "Đã duyệt"
+                        : course.status === ApprovalStatus.IN_REVIEW
+                          ? "Đang trình duyệt"
+                          : "Chưa duyệt"}
                     </span>
                   </div>
 
                   <div className="p-5">
                     <div className="mb-4 flex items-start justify-between gap-3">
-                      <div className="flex-1">
+                      <div
+                        className="flex-1 cursor-pointer "
+                        onClick={() => handleManageContent(course._id)}
+                      >
                         <h3 className="line-clamp-1 text-xl font-bold text-slate-800">
                           {course.title}
                         </h3>
@@ -149,9 +171,10 @@ const CoursePage = () => {
                           <FolderOpen className="h-3.5 w-3.5" /> Danh mục
                         </span>
                         <span className="font-medium text-slate-700">
-                          {typeof course.categoryId === 'object'
+                          {typeof course.categoryId === "object"
                             ? (course.categoryId as any).name
-                            : categoryMap.get(course.categoryId as string) || String(course.categoryId)}
+                            : categoryMap.get(course.categoryId as string) ||
+                              String(course.categoryId)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
@@ -183,10 +206,10 @@ const CoursePage = () => {
                       </Button>
                       <Button
                         variant="outline"
-                        onClick={() => handleManageContent(course._id)}
+                        onClick={() => handleApproval(course._id)}
                         className="border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
                       >
-                        <BookOpen className="mr-2 h-3.5 w-3.5" /> Nội dung
+                        <BookOpen className="mr-2 h-3.5 w-3.5" /> Trình duyệt
                       </Button>
                       <Button
                         variant="destructive"

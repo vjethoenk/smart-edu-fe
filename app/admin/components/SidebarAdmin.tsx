@@ -14,8 +14,10 @@ import {
   FolderTree,
   LogOut,
   Sparkles,
+  FileQuestionMark,
+  ListChecks,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const menus = [
   {
@@ -39,9 +41,19 @@ const menus = [
     icon: BookOpen,
   },
   {
+    name: "Câu hỏi",
+    href: "/admin/questions",
+    icon: FileQuestionMark,
+  },
+  {
     name: "Báo cáo",
     href: "/admin/reports",
     icon: BarChart3,
+  },
+  {
+    name: "Phê duyệt",
+    href: "/admin/approvals",
+    icon: ListChecks,
   },
   {
     name: "Cài đặt",
