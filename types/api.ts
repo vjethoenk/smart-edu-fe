@@ -70,6 +70,7 @@ export interface ILesson {
   videoUrl?: string;
   type?: string;
   createdAt?: string;
+  quizId?: string;
 }
 
 export interface IQuestion {
@@ -79,4 +80,20 @@ export interface IQuestion {
   score: number;
   correctAnswer: string;
   status?: string;
+  createdAt?: string;
+}
+
+export interface IQuiz {
+  _id?: string;
+  title: string;
+  description: string;
+  courseId: string;
+  questions: object[];
+  limitTime: number;
+  passScore: number;
+  totalScore: number;
+  shuffleQuestions?: boolean;
+  showResult?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }

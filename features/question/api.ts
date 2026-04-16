@@ -1,7 +1,7 @@
 import axiosClient from "@/lib/axios";
 import { ApiResponse, IQuestion, QuestionResponse } from "@/types/api";
 
-export const QUESTION_PAGE_SIZE = 3;
+export const QUESTION_PAGE_SIZE = 10;
 
 export const getAllQuestionApi = (
   pageIndex?: number,

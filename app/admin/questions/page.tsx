@@ -49,7 +49,7 @@ export default function AdminQuestions() {
   const [selectedQuestion, setSelectedQuestion] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 3;
+  const pageSize = 10;
   const { mutate: browseQuestion } = useUpdateQuestion();
 
   const handleAddQuestion = () => {

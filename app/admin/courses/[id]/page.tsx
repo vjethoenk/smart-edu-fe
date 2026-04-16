@@ -20,6 +20,7 @@ import { useCourseStore } from "@/features/course/store";
 import { EActiveView } from "@/features/course/enum";
 import { useGetLessons } from "@/features/lesson/hook";
 import { useGetByIdCourse, useGetCourses } from "@/features/course/hook";
+import QuizPage from "../components/QuizPage";
 
 const LESSON_TYPES = [
   {
@@ -46,6 +47,14 @@ const LESSON_TYPES = [
     hoverBorder: "hover:border-purple-500",
     hoverBg: "hover:bg-purple-50",
   },
+  {
+    id: "quiz",
+    label: "Quiz",
+    icon: BookOpen,
+    color: "text-orange-500",
+    hoverBorder: "hover:border-orange-500",
+    hoverBg: "hover:bg-orange-50",
+  },
 ];
 
 const CourseDetailPage = () => {
@@ -56,6 +65,7 @@ const CourseDetailPage = () => {
   const [selectedType, setSelectedType] = useState("");
   const [selectedSectionId, setSelectedSectionId] = useState("");
   const [lessonId, setLessonId] = useState("");
+  const [selectedQuizId, setSelectedQuizId] = useState("");
 
   const { mutate: createSection } = useCreateSection();
   const { data: coursesDetail } = useGetByIdCourse(courseId);
@@ -133,11 +143,33 @@ const CourseDetailPage = () => {
             <VideoModal sectionId={selectedSectionId} type={selectedType} />
           ),
           doc: "Document Modal",
-          question: "Question Modal",
+          question: (
+            <QuizPage
+              lessonId={lessonId}
+              type={selectedType}
+              sectionId={selectedSectionId}
+            />
+          ),
+          quiz: (
+            <QuizPage
+              quizId={selectedQuizId}
+              type={selectedType}
+              sectionId={selectedSectionId}
+            />
+          ),
         };
         return <div>{modalLabels[selectedType] || null}</div>;
 
       case "view_lesson":
+        if (selectedType === "quiz") {
+          return (
+            <QuizPage
+              quizId={selectedQuizId}
+              sectionId={selectedSectionId}
+              type={selectedType}
+            />
+          );
+        }
         return (
           <VideoModal
             lessonId={lessonId}
@@ -189,6 +221,8 @@ const CourseDetailPage = () => {
                           openViewLesson();
                           setLessonId(l._id as string);
                           setSelectedSectionId(s._id as string);
+                          setSelectedType(l.type || "video");
+                          setSelectedQuizId(l.quizId || "");
                         }}
                       >
                         <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -203,10 +237,11 @@ const CourseDetailPage = () => {
                       className="w-full justify-center text-xs text-gray-500 border border-gray-300 border-dashed cursor-pointer hover:bg-gray-100"
                       onClick={() => {
                         setSelectedSectionId(s._id as string);
+                        setSelectedQuizId("");
                         openLessonTypeSelector();
                       }}
                     >
-                      + ADD LESSON
+                      + ADD LESSON/QUIZ
                     </Button>
                   </div>
                 </AccordionContent>

@@ -39,7 +39,7 @@ export default function ApprovalPage() {
   const [activeTab, setActiveTab] = useState<"course" | "question">("course");
   const [coursePage, setCoursePage] = useState(1);
   const [questionPage, setQuestionPage] = useState(1);
-  const pageSize = 3;
+  const pageSize = 10;
   const { data: courses } = useGetCourses();
   const { data: categories } = useGetCategories();
   const { data: questions } = useGetQuestions(undefined, 1000);
