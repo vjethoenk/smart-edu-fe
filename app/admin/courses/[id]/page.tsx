@@ -40,14 +40,6 @@ const LESSON_TYPES = [
     hoverBg: "hover:bg-green-50",
   },
   {
-    id: "question",
-    label: "Bài tập",
-    icon: BookOpen,
-    color: "text-purple-500",
-    hoverBorder: "hover:border-purple-500",
-    hoverBg: "hover:bg-purple-50",
-  },
-  {
     id: "quiz",
     label: "Quiz",
     icon: BookOpen,
@@ -241,7 +233,7 @@ const CourseDetailPage = () => {
                         openLessonTypeSelector();
                       }}
                     >
-                      + ADD LESSON/QUIZ
+                      + ADD LESSON
                     </Button>
                   </div>
                 </AccordionContent>

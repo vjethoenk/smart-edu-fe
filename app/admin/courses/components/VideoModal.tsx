@@ -11,6 +11,7 @@ import {
 } from "@/features/lesson/hook";
 import { useCourseStore } from "@/features/course/store";
 import { EActiveView } from "@/features/course/enum";
+import { useParams } from "next/navigation";
 
 interface IPops {
   sectionId?: string;
@@ -18,6 +19,7 @@ interface IPops {
   lessonId?: string;
 }
 const VideoModal = (props: IPops) => {
+  const { id } = useParams();
   const { sectionId = "", type, lessonId = "" } = props;
   const { data: lessonDetail } = useGetByIdLesson(lessonId);
   const { mutate: uploadLesson } = useUpdateLesson();
@@ -25,6 +27,7 @@ const VideoModal = (props: IPops) => {
     title: "",
     content: "",
     videoUrl: "",
+    courseId: "",
   });
 
   useEffect(() => {
@@ -33,6 +36,7 @@ const VideoModal = (props: IPops) => {
         title: lessonDetail.title,
         content: lessonDetail.content,
         videoUrl: lessonDetail.videoUrl || "",
+        courseId: id as string,
       });
     }
   }, [lessonId, lessonDetail]);
@@ -67,12 +71,12 @@ const VideoModal = (props: IPops) => {
       ...form,
       sectionId,
       type,
-      courseId,
+      courseId: courseId || "",
     };
     createLesson(payload);
     setIsSubmitting(false);
     setActiveView(EActiveView.NONE);
-    setForm({ title: "", content: "", videoUrl: "" });
+    setForm({ title: "", content: "", videoUrl: "", courseId: "" });
   };
 
   const handleUpdateLesson = async () => {
@@ -81,12 +85,12 @@ const VideoModal = (props: IPops) => {
       ...form,
       sectionId,
       type: "video",
-      courseId,
+      courseId: courseId || "",
     };
     uploadLesson({ id: lessonId, data: payload });
     setIsSubmitting(false);
     setActiveView(EActiveView.NONE);
-    setForm({ title: "", content: "", videoUrl: "" });
+    setForm({ title: "", content: "", videoUrl: "", courseId: "" });
   };
 
   return (

@@ -22,9 +22,6 @@ export const useCreateQuiz = () => {
       toast.error(error?.response?.data?.message || "Có lỗi xảy ra");
     },
   });
-  //   return useMutation({
-  //     mutationFn: (data: IQuiz) => createQuizApi(data),
-  //   });
 };
 
 export const useUpdateQuiz = () => {

@@ -202,6 +202,7 @@ export default function QuizPage({
           content: quizInfo.description,
           type,
           sectionId,
+          courseId: courseId || "",
           quizId: createdQuizId,
         });
         setActiveView(EActiveView.NONE);

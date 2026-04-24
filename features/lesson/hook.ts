@@ -27,6 +27,7 @@ export const useCreateLesson = () => {
     mutationFn: createLessonApi,
     onSuccess: (data, variables: any) => {
       const courseId = variables.courseId;
+      queryClient.invalidateQueries({ queryKey: ["courses"] });
       if (courseId) {
         queryClient.invalidateQueries({ queryKey: ["courses", courseId] });
       }

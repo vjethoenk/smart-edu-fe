@@ -72,6 +72,7 @@ export interface ILesson {
   type?: string;
   createdAt?: string;
   quizId?: string;
+  courseId?: string;
 }
 
 export interface IQuestion {
