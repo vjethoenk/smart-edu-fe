@@ -184,7 +184,7 @@ const VideoModal = (props: IPops) => {
         <Button
           variant="outline"
           onClick={() => {
-            setForm({ title: "", content: "", videoUrl: "" });
+            setForm({ title: "", content: "", videoUrl: "", courseId: "" });
             setActiveView(EActiveView.NONE);
           }}
           className="border-gray-200 text-gray-600 transition-all hover:border-gray-300 hover:bg-gray-50 course-pointer "

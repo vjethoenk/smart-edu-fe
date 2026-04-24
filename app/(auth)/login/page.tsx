@@ -13,7 +13,9 @@ import { useRouter } from "next/navigation";
 export default function LoginPage() {
   const { mutate, isPending } = useLogin();
   const router = useRouter();
-
+  const handleLoginGoogle = () => {
+    window.location.href = "http://localhost:8081/v1/auth/google/";
+  };
   const handleLogin = () => {
     if (!email || !password) {
       toast.error("Vui lòng nhập đầy đủ thông tin!");
@@ -107,6 +109,7 @@ export default function LoginPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <Button
+                onClick={handleLoginGoogle}
                 variant="outline"
                 className="h-12 gap-2 rounded-xl border-gray-200 bg-[#F3F4F6] hover:bg-gray-100"
               >
