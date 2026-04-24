@@ -51,6 +51,7 @@ export interface ICourse {
   createBy: {
     _id: string;
     email: string;
+    name: string;
   };
 }
 
@@ -81,6 +82,10 @@ export interface IQuestion {
   correctAnswer: string;
   status?: string;
   createdAt?: string;
+  createBy: {
+    _id: string;
+    email: string;
+  };
 }
 
 export interface IQuiz {

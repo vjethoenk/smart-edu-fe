@@ -21,9 +21,11 @@ import { useGetCategories } from "@/features/category/hook";
 import { ICourse } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CourseModal } from "./components/CourseModal";
 import { useRouter } from "next/navigation";
 import { ApprovalStatus } from "@/features/course/enum";
+import { CourseModal } from "@/app/admin/courses/components/CourseModal";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/type";
 
 const CoursePage = () => {
   const router = useRouter();
@@ -31,9 +33,11 @@ const CoursePage = () => {
   const { data: categories } = useGetCategories();
   const updateApproval = useUpdateApprovalCourse();
   const deleteMutation = useDeleteCourse();
-
+  const { user } = useSelector((state: RootState) => state.auth);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<ICourse | null>(null);
+
+  const courseData = courses?.filter((c) => c.createBy.email === user.email);
 
   const handleDeleteCourse = (id: string) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa khóa học này?")) {
@@ -52,7 +56,7 @@ const CoursePage = () => {
   };
 
   const handleManageContent = (id: string) => {
-    router.push(`/admin/courses/${id}`);
+    router.push(`/instructor/courses/${id}`);
   };
 
   const handleApproval = async (id: string) => {
@@ -91,7 +95,9 @@ const CoursePage = () => {
               <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
               <p className="text-sm font-medium text-slate-500">
                 Tổng số khóa học:{" "}
-                <span className="text-slate-900">{courses?.length || 0}</span>
+                <span className="text-slate-900">
+                  {courseData?.length || 0}
+                </span>
               </p>
             </div>
           </div>
@@ -106,9 +112,9 @@ const CoursePage = () => {
         </div>
 
         {/* Courses Grid - Enhanced Cards */}
-        {courses && courses.length > 0 ? (
+        {courseData && courseData.length > 0 ? (
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-            {courses.map((course) => (
+            {courseData.map((course) => (
               <Card
                 key={course._id}
                 className="group overflow-hidden p-0 rounded-2xl border-0 bg-white shadow-md transition-all duration-300 hover:shadow-2xl hover:shadow-slate-200"

@@ -115,6 +115,15 @@ export default function Navbar() {
                       </Link>
                     )}
 
+                    {role === "INSTRUCTOR" && (
+                      <Link
+                        href="/instructor"
+                        className="px-4 py-2 hover:bg-gray-100 text-indigo-600 font-semibold"
+                      >
+                        Trang giảng dạy
+                      </Link>
+                    )}
+
                     <button
                       //onClick={() => dispatch(logout())}
                       className="text-left px-4 py-2 hover:bg-gray-100 text-red-500"

@@ -21,14 +21,28 @@ export function middleware(request: NextRequest) {
       return response;
     }
 
-    const isAdmin = role === "ADMIN";
+    // Allow ADMIN and INSTRUCTOR to access /admin
+    // But INSTRUCTOR can only access courses and questions
+    if (role === "ADMIN") {
+      return NextResponse.next();
+    }
 
-    if (!isAdmin) {
+    if (role === "INSTRUCTOR") {
+      const allowedPaths = ["/admin/courses", "/admin/questions"];
+      if (
+        allowedPaths.some(
+          (path) => pathname === path || pathname.startsWith(path + "/"),
+        )
+      ) {
+        return NextResponse.next();
+      }
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
+
+    return NextResponse.redirect(new URL("/unauthorized", request.url));
   }
 
-  if (pathname.startsWith("/teacher")) {
+  if (pathname.startsWith("/instructor")) {
     // If no token or token expired, redirect to home
     if (!accessToken || tokenExpired) {
       const response = NextResponse.redirect(new URL("/", request.url));
@@ -38,7 +52,7 @@ export function middleware(request: NextRequest) {
       return response;
     }
 
-    if (role !== "TEACHER") {
+    if (role !== "INSTRUCTOR") {
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
   }
@@ -47,5 +61,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/teacher/:path*"],
+  matcher: ["/admin/:path*", "/instructor/:path*"],
 };

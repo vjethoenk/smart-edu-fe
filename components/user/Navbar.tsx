@@ -11,6 +11,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const { user, role } = useSelector((state: RootState) => state.auth);
 
+  console.log("Role", role);
   const menus = [
     { name: "Khóa học", href: "/my-learning" },
     { name: "Thể loại", href: "/categories" },
@@ -112,6 +113,16 @@ export default function Navbar() {
                         className="px-4 py-2 hover:bg-gray-100 text-indigo-600 font-semibold"
                       >
                         Trang quản lí
+                      </Link>
+                    )}
+
+                    {/* INSTRUCTOR */}
+                    {role === "INSTRUCTOR" && (
+                      <Link
+                        href="/instructor"
+                        className="px-4 py-2 hover:bg-gray-100 text-indigo-600 font-semibold"
+                      >
+                        Trang giảng dạy
                       </Link>
                     )}
 

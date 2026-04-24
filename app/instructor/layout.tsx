@@ -1,13 +1,13 @@
 "use client";
 import ProtectedRoute from "@/components/common/ProtectedRoute";
-import SidebarAdmin from "./components/SidebarAdmin";
-import HeaderAdmin from "./components/HeaderAdmin";
+import SidebarAdmin from "@/app/admin/components/SidebarAdmin";
+import HeaderAdmin from "@/app/admin/components/HeaderAdmin";
 import { useState } from "react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   return (
-    <ProtectedRoute allowedRoles={["ADMIN", "INSTRUCTOR"]}>
+    <ProtectedRoute allowedRoles={["INSTRUCTOR"]}>
       <div className="flex min-h-screen">
         <SidebarAdmin
           isCollapsed={isCollapsed}

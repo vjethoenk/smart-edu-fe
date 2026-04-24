@@ -20,6 +20,8 @@ import {
 } from "@/features/course/hook";
 import { ICategory, ICourse } from "@/types/api";
 import { Loader2, Upload } from "lucide-react";
+import ApprovalPage from "../../approvals/page";
+import { ApprovalStatus } from "@/features/course/enum";
 
 interface CourseModalProps {
   course?: ICourse | null;
@@ -89,7 +91,6 @@ export function CourseModal({
     if (!description.trim()) return alert("Vui lòng nhập mô tả khóa học");
     if (!thumbnail.trim()) return alert("Vui lòng tải ảnh đại diện lên");
     if (!categoryId) return alert("Vui lòng chọn danh mục khóa học");
-    
 
     const payload = {
       title: title.trim(),
@@ -98,6 +99,7 @@ export function CourseModal({
       price,
       level,
       categoryId,
+      status: ApprovalStatus.PENDING,
       isPublished: course ? isPublished : false,
     };
 

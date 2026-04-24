@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSelector } from "react-redux";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -16,49 +17,65 @@ import {
   Sparkles,
   FileQuestionMark,
   ListChecks,
+  Shield,
+  Users2,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
-const menus = [
+const ALL_MENUS = [
   {
     name: "Tổng quan",
     href: "/admin",
     icon: LayoutDashboard,
+    requiredRole: null, // visible to all
   },
   {
-    name: "Người dùng",
+    name: "Quản Lí Giáo Viên",
     href: "/admin/users",
-    icon: Users,
+    icon: Users2,
+    requiredRole: "ADMIN", // only ADMIN
   },
   {
     name: "Thể loại",
     href: "/admin/category",
     icon: FolderTree,
+    requiredRole: "ADMIN", // only ADMIN
   },
   {
     name: "Khóa học",
     href: "/admin/courses",
     icon: BookOpen,
+    requiredRole: null, // visible to all
   },
   {
     name: "Câu hỏi",
     href: "/admin/questions",
     icon: FileQuestionMark,
+    requiredRole: null, // visible to all
   },
   {
     name: "Báo cáo",
     href: "/admin/reports",
     icon: BarChart3,
+    requiredRole: "ADMIN", // only ADMIN
   },
   {
     name: "Phê duyệt",
     href: "/admin/approvals",
     icon: ListChecks,
+    requiredRole: "ADMIN", // only ADMIN
+  },
+  {
+    name: "Vai Trò",
+    href: "/admin/roles",
+    icon: Shield,
+    requiredRole: "ADMIN", // only ADMIN
   },
   {
     name: "Cài đặt",
     href: "/admin/settings",
     icon: Settings,
+    requiredRole: "ADMIN", // only ADMIN
   },
 ];
 
@@ -70,6 +87,30 @@ interface Props {
 const SidebarAdmin = ({ isCollapsed, toggleSidebar }: Props) => {
   const pathname = usePathname();
   const [isMobile, setIsMobile] = useState(false);
+  const userRole = useSelector((state: any) => state.auth.role);
+
+  // Filter menus based on user role and adjust paths for INSTRUCTOR
+  const menus = useMemo(() => {
+    return ALL_MENUS.filter((menu) => {
+      if (menu.requiredRole === null) return true; // visible to all (ADMIN and INSTRUCTOR)
+      return menu.requiredRole === userRole; // only show if role matches
+    }).map((menu) => {
+      // For INSTRUCTOR, redirect admin routes to instructor routes
+      if (userRole === "INSTRUCTOR") {
+        if (menu.href === "/admin/courses") {
+          return { ...menu, href: "/instructor/courses" };
+        }
+        if (menu.href === "/admin/questions") {
+          return { ...menu, href: "/instructor/questions" };
+        }
+        // Redirect main admin page to instructor page
+        if (menu.href === "/admin") {
+          return { ...menu, href: "/instructor" };
+        }
+      }
+      return menu;
+    });
+  }, [userRole]);
 
   return (
     <>
@@ -125,11 +166,29 @@ const SidebarAdmin = ({ isCollapsed, toggleSidebar }: Props) => {
 
         <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto max-h-[calc(100vh-180px)] custom-scrollbar">
           {menus.map((item) => {
-            const isActive =
-              item.href === "/admin"
-                ? pathname === "/admin"
-                : pathname === item.href ||
-                  pathname.startsWith(item.href + "/");
+            const isActive = (() => {
+              if (item.href === "/admin" || item.href === "/instructor") {
+                return pathname === item.href;
+              }
+
+              // For courses and questions, match both admin and instructor paths
+              if (item.href === "/instructor/courses") {
+                return (
+                  pathname.startsWith("/instructor/courses") ||
+                  pathname.startsWith("/admin/courses")
+                );
+              }
+              if (item.href === "/instructor/questions") {
+                return (
+                  pathname.startsWith("/instructor/questions") ||
+                  pathname.startsWith("/admin/questions")
+                );
+              }
+
+              return (
+                pathname === item.href || pathname.startsWith(item.href + "/")
+              );
+            })();
 
             const Icon = item.icon;
 
