@@ -21,6 +21,7 @@ import { EActiveView } from "@/features/course/enum";
 import { useGetLessons } from "@/features/lesson/hook";
 import { useGetByIdCourse, useGetCourses } from "@/features/course/hook";
 import QuizPage from "../components/QuizPage";
+import PdfModal from "../components/PdfModel";
 
 const LESSON_TYPES = [
   {
@@ -32,7 +33,7 @@ const LESSON_TYPES = [
     hoverBg: "hover:bg-blue-50",
   },
   {
-    id: "doc",
+    id: "pdf",
     label: "Tài liệu",
     icon: FileText,
     color: "text-green-500",
@@ -58,6 +59,7 @@ const CourseDetailPage = () => {
   const [selectedSectionId, setSelectedSectionId] = useState("");
   const [lessonId, setLessonId] = useState("");
   const [selectedQuizId, setSelectedQuizId] = useState("");
+  const [selectedPdfId, setSelectedPdfId] = useState("");
 
   const { mutate: createSection } = useCreateSection();
   const { data: coursesDetail } = useGetByIdCourse(courseId);
@@ -134,7 +136,7 @@ const CourseDetailPage = () => {
           video: (
             <VideoModal sectionId={selectedSectionId} type={selectedType} />
           ),
-          doc: "Document Modal",
+          pdf: <PdfModal sectionId={selectedSectionId} type={selectedType} />,
           question: (
             <QuizPage
               lessonId={lessonId}
@@ -162,12 +164,31 @@ const CourseDetailPage = () => {
             />
           );
         }
+        if (selectedType === "pdf") {
+          return (
+            <PdfModal
+              sectionId={selectedSectionId}
+              type={selectedType}
+              lessonId={lessonId}
+            />
+          );
+        }
+        if (selectedType === "video") {
+          return (
+            <VideoModal
+              lessonId={lessonId}
+              type={selectedType}
+              sectionId={selectedSectionId}
+            />
+          );
+        }
         return (
-          <VideoModal
-            lessonId={lessonId}
-            type={selectedType}
-            sectionId={selectedSectionId}
-          />
+          // <VideoModal
+          //   lessonId={lessonId}
+          //   type={selectedType}
+          //   sectionId={selectedSectionId}
+          // />
+          <>Gì</>
         );
 
       default:
@@ -215,6 +236,7 @@ const CourseDetailPage = () => {
                           setSelectedSectionId(s._id as string);
                           setSelectedType(l.type || "video");
                           setSelectedQuizId(l.quizId || "");
+                          setSelectedPdfId(l.pdfUrl || "");
                         }}
                       >
                         <div className="flex items-center gap-2 text-sm text-gray-600">

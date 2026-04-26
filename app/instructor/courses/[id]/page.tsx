@@ -21,6 +21,7 @@ import { EActiveView } from "@/features/course/enum";
 import { useGetLessons } from "@/features/lesson/hook";
 import { useGetByIdCourse, useGetCourses } from "@/features/course/hook";
 import QuizPage from "@/app/admin/courses/components/QuizPage";
+import PdfModal from "@/app/admin/courses/components/PdfModel";
 
 const LESSON_TYPES = [
   {
@@ -32,7 +33,7 @@ const LESSON_TYPES = [
     hoverBg: "hover:bg-blue-50",
   },
   {
-    id: "doc",
+    id: "pdf",
     label: "Tài liệu",
     icon: FileText,
     color: "text-green-500",
@@ -142,7 +143,7 @@ const CourseDetailPage = () => {
           video: (
             <VideoModal sectionId={selectedSectionId} type={selectedType} />
           ),
-          doc: "Document Modal",
+          pdf: <PdfModal sectionId={selectedSectionId} type={selectedType} />,
           question: (
             <QuizPage
               lessonId={lessonId}

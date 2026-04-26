@@ -32,3 +32,14 @@ export const uploadVideoApi = (file: FormData) => {
     },
   );
 };
+export const uploadPdfApi = (file: FormData) => {
+  return axiosClient.post<any, ApiResponse<{ url: string }>>(
+    "/v1/upload/pdf",
+    file,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+};

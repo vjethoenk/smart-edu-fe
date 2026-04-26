@@ -5,6 +5,7 @@ import {
   getLessonApi,
   getLessonByIdApi,
   updateLessonApi,
+  uploadPdfApi,
   uploadVideoApi,
 } from "./api";
 import { toast } from "sonner";
@@ -94,6 +95,15 @@ export const useUploadVideo = () => {
     mutationFn: uploadVideoApi,
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || "Upload video thất bại");
+    },
+  });
+};
+
+export const useUploadPdf = () => {
+  return useMutation({
+    mutationFn: uploadPdfApi,
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Upload pdf thất bại");
     },
   });
 };
