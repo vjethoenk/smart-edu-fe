@@ -9,15 +9,14 @@ import {
   uploadImageApi,
 } from "./api";
 import { toast } from "sonner";
-import { ExpandIcon } from "lucide-react";
-import { queryClient } from "@/lib/react-query";
 
 export const useGetCourses = () => {
   return useQuery({
     queryKey: ["courses"],
     queryFn: async () => {
       const res = await getCoursesApi();
-      return res.data;
+      console.log("API Response:", res);
+      return res?.data ?? [];
     },
   });
 };

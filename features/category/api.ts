@@ -5,6 +5,9 @@ export const getCategoriesApi = () => {
   return axiosClient.get<ApiResponse<ICategory[]>>("/v1/categories");
 };
 
+export const getCategoryByIdApi = (_id: string) => {
+  return axiosClient.get<ApiResponse<ICategory>>(`/v1/categories/${_id}`);
+};
 export const createCategoryApi = (data: {
   name: string;
   description: string;

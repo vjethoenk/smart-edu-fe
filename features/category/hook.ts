@@ -4,6 +4,7 @@ import {
   createCategoryApi,
   updateCategoryApi,
   deleteCategoryApi,
+  getCategoryByIdApi,
 } from "./api";
 import { toast } from "sonner";
 
@@ -14,6 +15,17 @@ export const useGetCategories = () => {
       const res = await getCategoriesApi();
       return res.data;
     },
+  });
+};
+
+export const useGetCategoryById = (_id: string) => {
+  return useQuery({
+    queryKey: ["categories", _id],
+    queryFn: async () => {
+      const res = await getCategoryByIdApi(_id);
+      return res.data ?? null;
+    },
+    enabled: !!_id,
   });
 };
 

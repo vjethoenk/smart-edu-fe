@@ -1,12 +1,11 @@
+import FeaturedCourses from "./components/FeaturedCourses";
 import Hero from "./components/Hero";
-import Navbar from "./components/Navbar";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function HomePage() {
   return (
     <div>
-      <Navbar />
       <Hero />
-      <main>{children}</main>
+      <FeaturedCourses />
     </div>
   );
 }
