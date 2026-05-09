@@ -104,3 +104,12 @@ export interface IQuiz {
   createdAt?: string;
   updatedAt?: string;
 }
+
+export interface IPayment {
+  paymentId: string;
+  orderCode: number;
+  amount: number;
+  status: string;
+  checkoutUrl: string;
+  qrCode: string;
+}

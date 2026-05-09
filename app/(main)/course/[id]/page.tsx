@@ -23,7 +23,10 @@ export default function CoursePage() {
 
         {/* RIGHT */}
         <div className="col-span-4 space-y-6">
-          <PriceCard price={courseDetails?.price as number | undefined} />
+          <PriceCard
+            price={courseDetails?.price as number | undefined}
+            courseId={courseDetails?._id as string}
+          />
           <InstructorCard instructor={courseDetails?.createBy as IUser} />
         </div>
       </div>

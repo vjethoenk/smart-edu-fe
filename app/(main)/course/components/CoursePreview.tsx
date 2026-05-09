@@ -7,7 +7,7 @@ export default function CoursePreview({ url }: { url: string }) {
         <img
           src={url}
           alt="preview"
-          className="w-full h-[520px] object-cover"
+          className="w-full h-[475px] object-cover"
         />
       ) : (
         ""
