@@ -28,3 +28,9 @@ export const getQuizByIdApi = (id: string) => {
 export const deleteQuizApi = (id: string) => {
   return axiosClient.delete<any, ApiResponse<void>>(`/v1/quizzes/${id}`);
 };
+
+export const getQuestion = (quizId: string) => {
+  return axiosClient.get<ApiResponse<IQuiz[]>>(
+    `/v1/quizzes/${quizId}/questions`,
+  );
+};

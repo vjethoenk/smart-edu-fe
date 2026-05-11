@@ -1,12 +1,71 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ShoppingCart, Bell } from "lucide-react";
 import { useSelector } from "react-redux";
+import { useLogout } from "@/features/auth/hook";
 import { RootState } from "@/store/type";
+
+function UserMenu() {
+  const router = useRouter();
+  const logout = useLogout();
+  const { user, role } = useSelector((state: RootState) => state.auth);
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
+
+  return (
+    <div className="relative group">
+      <div className="cursor-pointer font-semibold text-gray-700">
+        {user?.name}
+      </div>
+
+      <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 z-50">
+        <div className="flex flex-col py-2">
+          <Link href="/profile" className="px-4 py-2 hover:bg-gray-100">
+            Tài khoản
+          </Link>
+
+          <Link href="/my-courses" className="px-4 py-2 hover:bg-gray-100">
+            Khóa học của tôi
+          </Link>
+
+          {role === "ADMIN" && (
+            <Link
+              href="/admin"
+              className="px-4 py-2 hover:bg-gray-100 text-indigo-600 font-semibold"
+            >
+              Trang quản lí
+            </Link>
+          )}
+
+          {role === "INSTRUCTOR" && (
+            <Link
+              href="/instructor"
+              className="px-4 py-2 hover:bg-gray-100 text-indigo-600 font-semibold"
+            >
+              Trang giảng dạy
+            </Link>
+          )}
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="text-left px-4 py-2 hover:bg-gray-100 text-red-500"
+          >
+            Đăng xuất
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Navbar() {
   const pathname = usePathname();
   const { user, role } = useSelector((state: RootState) => state.auth);
@@ -84,55 +143,7 @@ export default function Navbar() {
                 </Link>
               </>
             ) : (
-              <div className="relative group">
-                <div className="cursor-pointer font-semibold text-gray-700">
-                  {user.name}
-                </div>
-
-                <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 z-50">
-                  <div className="flex flex-col py-2">
-                    <Link
-                      href="/profile"
-                      className="px-4 py-2 hover:bg-gray-100"
-                    >
-                      Tài khoản
-                    </Link>
-
-                    <Link
-                      href="/my-courses"
-                      className="px-4 py-2 hover:bg-gray-100"
-                    >
-                      Khóa học của tôi
-                    </Link>
-
-                    {/* ADMIN */}
-                    {role === "ADMIN" && (
-                      <Link
-                        href="/admin"
-                        className="px-4 py-2 hover:bg-gray-100 text-indigo-600 font-semibold"
-                      >
-                        Trang quản lí
-                      </Link>
-                    )}
-
-                    {role === "INSTRUCTOR" && (
-                      <Link
-                        href="/instructor"
-                        className="px-4 py-2 hover:bg-gray-100 text-indigo-600 font-semibold"
-                      >
-                        Trang giảng dạy
-                      </Link>
-                    )}
-
-                    <button
-                      //onClick={() => dispatch(logout())}
-                      className="text-left px-4 py-2 hover:bg-gray-100 text-red-500"
-                    >
-                      Đăng xuất
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <UserMenu />
             )}
           </div>
         </div>

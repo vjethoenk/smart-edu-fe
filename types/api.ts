@@ -113,3 +113,19 @@ export interface IPayment {
   checkoutUrl: string;
   qrCode: string;
 }
+
+export interface IEnrollment {
+  _id?: string;
+  courseId: string;
+  userId: string;
+  status?: string;
+}
+
+export interface ICreateQuizQuestion {
+  quizId: string;
+  questionId: string;
+  content: string;
+  options: string[];
+  correctAnswer: string;
+  score: number;
+}

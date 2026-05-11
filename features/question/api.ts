@@ -1,5 +1,10 @@
 import axiosClient from "@/lib/axios";
-import { ApiResponse, IQuestion, QuestionResponse } from "@/types/api";
+import {
+  ApiResponse,
+  ICreateQuizQuestion,
+  IQuestion,
+  QuestionResponse,
+} from "@/types/api";
 
 export const QUESTION_PAGE_SIZE = 10;
 
@@ -34,5 +39,15 @@ export const updateQuestionApi = (data: {
   return axiosClient.patch<any, ApiResponse<IQuestion>>(
     `/v1/questions/${data.id}`,
     data.body,
+  );
+};
+
+export const addQuestionToQuizApi = (
+  quizId: string,
+  data: ICreateQuizQuestion,
+) => {
+  return axiosClient.post<any, ApiResponse<ICreateQuizQuestion>>(
+    `/v1/quizzes/${quizId}/questions`,
+    data,
   );
 };

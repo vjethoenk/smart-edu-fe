@@ -5,8 +5,10 @@ import {
   getAllQuestionApi,
   updateQuestionApi,
   QUESTION_PAGE_SIZE,
+  addQuestionToQuizApi,
 } from "./api";
 import { toast } from "sonner";
+import { ICreateQuizQuestion } from "@/types/api";
 
 export const useGetQuestions = (
   pageIndex?: number,
@@ -67,6 +69,32 @@ export const useUpdateQuestion = () => {
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || "Có lỗi xảy ra");
+    },
+  });
+};
+
+export const useAddQuestionToQuiz = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      quizId,
+      data,
+    }: {
+      quizId: string;
+      data: ICreateQuizQuestion;
+    }) => addQuestionToQuizApi(quizId, data),
+
+    onSuccess: (_, variables) => {
+      toast.success("Thêm câu hỏi thành công!");
+
+      queryClient.invalidateQueries({
+        queryKey: ["quiz-questions", variables.quizId],
+      });
+    },
+
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Thêm câu hỏi thất bại!");
     },
   });
 };

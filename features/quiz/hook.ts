@@ -5,6 +5,7 @@ import {
   getQuizByIdApi,
   deleteQuizApi,
   getQuizzesApi,
+  getQuestion,
 } from "./api";
 import { IQuiz } from "@/types/api";
 import { toast } from "sonner";
@@ -50,5 +51,13 @@ export const useGetQuizById = (id: string) => {
 export const useDeleteQuiz = () => {
   return useMutation({
     mutationFn: (id: string) => deleteQuizApi(id),
+  });
+};
+
+export const useGetQuestion = (quizId: string) => {
+  return useQuery({
+    queryKey: ["questions", quizId],
+    queryFn: () => getQuestion(quizId),
+    enabled: !!quizId,
   });
 };
