@@ -4,6 +4,7 @@ import {
   deleteCourseApi,
   getCoursesApi,
   getCoursesByIdApi,
+  getCourseMonitoringApi,
   updateApprovalApi,
   updateCourseApi,
   uploadImageApi,
@@ -28,6 +29,17 @@ export const useGetByIdCourse = (id: string) => {
       const res = await getCoursesByIdApi(id);
       return res.data;
     },
+  });
+};
+
+export const useGetCourseMonitoring = (id: string) => {
+  return useQuery({
+    queryKey: ["courseMonitoring", id],
+    queryFn: async () => {
+      const res = await getCourseMonitoringApi(id);
+      return res.data;
+    },
+    enabled: !!id,
   });
 };
 

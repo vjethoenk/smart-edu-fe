@@ -2,7 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { BookOpen, FileText, GripVertical, Video } from "lucide-react";
+import {
+  BookOpen,
+  FileText,
+  GripVertical,
+  Settings,
+  Video,
+  BarChart,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,14 +21,23 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-import { useCreateSection, useGetSections } from "@/features/section/hook";
+import { useCreateSection } from "@/features/section/hook";
 import VideoModal from "@/app/admin/courses/components/VideoModal";
 import { useCourseStore } from "@/features/course/store";
 import { EActiveView } from "@/features/course/enum";
-import { useGetLessons } from "@/features/lesson/hook";
-import { useGetByIdCourse, useGetCourses } from "@/features/course/hook";
+import { useGetByIdCourse } from "@/features/course/hook";
+import CourseMonitoring from "./components/CourseMonitoring";
 import QuizPage from "@/app/admin/courses/components/QuizPage";
 import PdfModal from "@/app/admin/courses/components/PdfModel";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { useUpdateLesson } from "@/features/lesson/hook";
 
 const LESSON_TYPES = [
   {
@@ -67,6 +83,7 @@ const CourseDetailPage = () => {
   const [selectedSectionId, setSelectedSectionId] = useState("");
   const [lessonId, setLessonId] = useState("");
   const [selectedQuizId, setSelectedQuizId] = useState("");
+  const [isMonitoringModalOpen, setIsMonitoringModalOpen] = useState(false);
 
   const { mutate: createSection } = useCreateSection();
   const { data: coursesDetail } = useGetByIdCourse(courseId);
@@ -101,6 +118,38 @@ const CourseDetailPage = () => {
 
   const openViewLesson = () => {
     setActiveView(EActiveView.VIEW_LESSON);
+  };
+
+  const [selectedLesson, setSelectedLesson] = useState<any>(null);
+  const [completionTime, setCompletionTime] = useState<string>("");
+  const [completionPercentage, setCompletionPercentage] = useState<string>("");
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const { mutate: updateLesson } = useUpdateLesson();
+
+  const handleSaveCompletionSettings = () => {
+    const payload = {
+      completionConditions: {
+        duration: completionTime ? parseInt(completionTime) : undefined,
+      },
+    };
+    updateLesson({
+      id: selectedLesson._id,
+      data: payload,
+    });
+    setIsSettingsModalOpen(false);
+  };
+
+  const handleOpenSettings = (
+    e: React.MouseEvent,
+    lesson: any,
+    sectionId: string,
+  ) => {
+    e.stopPropagation();
+    setSelectedLesson(lesson);
+    setSelectedSectionId(sectionId);
+    setCompletionTime(lesson.completionTime?.toString() || "");
+    setCompletionPercentage(lesson.completionPercentage?.toString() || "");
+    setIsSettingsModalOpen(true);
   };
 
   const renderLeftContent = () => {
@@ -190,67 +239,175 @@ const CourseDetailPage = () => {
         <div>{renderLeftContent()}</div>
       </div>
 
-      <div className="w-full bg-[#f3f3f3] border-[#b9b9c0] border-l-2 p-6 min-h-[90vh]">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Nội dung</h2>
-          <button
-            className="border-none text-[#4D44E3] text-sm cursor-pointer font-medium hover:text-[#3F3DC9] transition-all"
-            onClick={toggleSectionInput}
-          >
-            + Thêm chương học
-          </button>
-        </div>
+      <div className="w-full bg-[#f3f3f3] border-[#b9b9c0] border-l-2 p-6 min-h-[90vh] flex flex-col justify-between">
+        <div className="space-y-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">Nội dung</h2>
+            <div className="flex gap-2">
+              <button
+                className="border-none text-[#4D44E3] text-sm cursor-pointer font-medium hover:text-[#3F3DC9] transition-all"
+                onClick={toggleSectionInput}
+              >
+                + Thêm chương học
+              </button>
+            </div>
+          </div>
 
-        <Accordion type="single" collapsible className="space-y-3">
-          {coursesDetail?.sections?.map((s, index) => (
-            <AccordionItem value={`section-${index + 1}`} key={s._id}>
-              <Card className="rounded-xl shadow-sm bg-[#ffffff]">
-                <AccordionTrigger className="px-3 py-1 hover:no-underline">
-                  <div className="flex items-center gap-2 font-semibold text-gray-700">
-                    <GripVertical className="w-4 h-4 opacity-50" />
-                    <span>{s.title}</span>
-                  </div>
-                </AccordionTrigger>
+          <Accordion type="single" collapsible className="space-y-3">
+            {coursesDetail?.sections?.map((s, index) => (
+              <AccordionItem value={`section-${index + 1}`} key={s._id}>
+                <Card className="rounded-xl shadow-sm bg-[#ffffff]">
+                  <AccordionTrigger className="px-3 py-1 hover:no-underline">
+                    <div className="flex items-center gap-2 font-semibold text-gray-700">
+                      <GripVertical className="w-4 h-4 opacity-50" />
+                      <span>{s.title}</span>
+                    </div>
+                  </AccordionTrigger>
 
-                <AccordionContent className="px-3 pb-3 h-auto">
-                  <div className="space-y-2">
-                    {s.lessons?.map((l) => (
-                      <div
-                        className="flex border border-gray-300 items-center justify-between p-2 rounded-lg hover:bg-gray-100 cursor-pointer"
-                        key={l._id}
+                  <AccordionContent className="px-3 pb-3 h-auto">
+                    <div className="space-y-2">
+                      {s.lessons?.map((l) => (
+                        <div
+                          className="flex border border-gray-300 items-center justify-between p-2 rounded-lg hover:bg-gray-100 cursor-pointer"
+                          key={l._id}
+                          onClick={() => {
+                            openViewLesson();
+                            setLessonId(l._id as string);
+                            setSelectedSectionId(s._id as string);
+                            setSelectedType(l.type || "video");
+                            setSelectedQuizId(l.quizId || "");
+                          }}
+                        >
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <GripVertical className="w-3 h-3 opacity-50" />
+                            <span>{l.title}</span>
+                          </div>
+
+                          <button
+                            onClick={(e) =>
+                              handleOpenSettings(e, l, s._id as string)
+                            }
+                            className="p-1 rounded hover:bg-gray-200 transition-colors"
+                          >
+                            <Settings className="w-4 h-4 text-gray-500" />
+                          </button>
+                        </div>
+                      ))}
+
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-center text-xs text-gray-500 border border-gray-300 border-dashed cursor-pointer hover:bg-gray-100"
                         onClick={() => {
-                          openViewLesson();
-                          setLessonId(l._id as string);
                           setSelectedSectionId(s._id as string);
-                          setSelectedType(l.type || "video");
-                          setSelectedQuizId(l.quizId || "");
+                          setSelectedQuizId("");
+                          openLessonTypeSelector();
                         }}
                       >
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <GripVertical className="w-3 h-3 opacity-50" />
-                          <span>{l.title}</span>
-                        </div>
-                      </div>
-                    ))}
+                        + ADD LESSON
+                      </Button>
+                    </div>
+                  </AccordionContent>
+                </Card>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
 
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-center text-xs text-gray-500 border border-gray-300 border-dashed cursor-pointer hover:bg-gray-100"
-                      onClick={() => {
-                        setSelectedSectionId(s._id as string);
-                        setSelectedQuizId("");
-                        openLessonTypeSelector();
-                      }}
-                    >
-                      + ADD LESSON/QUIZ
-                    </Button>
-                  </div>
-                </AccordionContent>
-              </Card>
-            </AccordionItem>
-          ))}
-        </Accordion>
+        {/* Stats Card at bottom */}
+        <Card
+          className="bg-gradient-to-r from-[#4D44E3] to-[#6B5EE8] text-white p-4 cursor-pointer hover:shadow-lg transition-all mt-6"
+          onClick={() => setIsMonitoringModalOpen(true)}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xl font-bold mt-1">Thống kê chi tiết</p>
+            </div>
+            <div className="bg-white/20 p-3 rounded-full">
+              <BarChart className="w-6 h-6" />
+            </div>
+          </div>
+        </Card>
       </div>
+
+      <Dialog open={isSettingsModalOpen} onOpenChange={setIsSettingsModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cài đặt tỷ lệ hoàn thành bài học</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Tên bài học:
+                <span className="ml-2 text-gray-900 font-semibold">
+                  {selectedLesson?.title}
+                </span>
+              </label>
+            </div>
+
+            {selectedType === "quiz" ? (
+              <div className="space-y-2">
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm text-gray-700 mb-2">
+                    Quiz sẽ được đánh dấu hoàn thành khi học viên:
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                    <li>Submit bài làm thành công</li>
+                    <li>Đạt được điểm số yêu cầu (nếu có)</li>
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Thời gian học (giây)
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="Nhập thời gian cần học (giây)"
+                    value={completionTime}
+                    onChange={(e) => setCompletionTime(e.target.value)}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Học viên cần học ít nhất thời gian này để được tính hoàn
+                    thành
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsSettingsModalOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button onClick={handleSaveCompletionSettings}>Lưu cài đặt</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* CourseMonitoring Modal */}
+      <Dialog
+        open={isMonitoringModalOpen}
+        onOpenChange={setIsMonitoringModalOpen}
+      >
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle></DialogTitle>
+          </DialogHeader>
+          <CourseMonitoring courseId={courseId} />
+          <DialogFooter>
+            <Button onClick={() => setIsMonitoringModalOpen(false)}>
+              Đóng
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

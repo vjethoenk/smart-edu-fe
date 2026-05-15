@@ -1,5 +1,5 @@
 import axiosClient from "@/lib/axios";
-import { ApiResponse, ICourse } from "@/types/api";
+import { ApiResponse, ICourse, ICourseMonitoring } from "@/types/api";
 
 export const getCoursesApi = () => {
   return axiosClient.get<ApiResponse<ICourse[]>>("/v1/courses");
@@ -7,6 +7,12 @@ export const getCoursesApi = () => {
 
 export const getCoursesByIdApi = (id: string) => {
   return axiosClient.get<ApiResponse<ICourse>>(`/v1/courses/${id}`);
+};
+
+export const getCourseMonitoringApi = (id: string) => {
+  return axiosClient.get<ApiResponse<ICourseMonitoring>>(
+    `/v1/courses/${id}/monitoring`,
+  );
 };
 
 export const createCourseApi = (data: {
