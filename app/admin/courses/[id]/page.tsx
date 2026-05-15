@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { BookOpen, FileText, GripVertical, Video } from "lucide-react";
+import {
+  BookOpen,
+  FileText,
+  GripVertical,
+  Video,
+  Settings,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,12 +19,19 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 import { useCreateSection, useGetSections } from "@/features/section/hook";
 import VideoModal from "../components/VideoModal";
 import { useCourseStore } from "@/features/course/store";
 import { EActiveView } from "@/features/course/enum";
-import { useGetLessons } from "@/features/lesson/hook";
+import { useGetLessons, useUpdateLesson } from "@/features/lesson/hook";
 import { useGetByIdCourse, useGetCourses } from "@/features/course/hook";
 import QuizPage from "../components/QuizPage";
 import PdfModal from "../components/PdfModel";
@@ -61,7 +74,14 @@ const CourseDetailPage = () => {
   const [selectedQuizId, setSelectedQuizId] = useState("");
   const [selectedPdfId, setSelectedPdfId] = useState("");
 
+  // Settings modal state
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [selectedLesson, setSelectedLesson] = useState<any>(null);
+  const [completionTime, setCompletionTime] = useState<string>("");
+  const [completionPercentage, setCompletionPercentage] = useState<string>("");
+
   const { mutate: createSection } = useCreateSection();
+  const { mutate: updateLesson } = useUpdateLesson();
   const { data: coursesDetail } = useGetByIdCourse(courseId);
 
   useEffect(() => {
@@ -94,6 +114,37 @@ const CourseDetailPage = () => {
 
   const openViewLesson = () => {
     setActiveView(EActiveView.VIEW_LESSON);
+  };
+
+  const handleOpenSettings = (
+    e: React.MouseEvent,
+    lesson: any,
+    sectionId: string,
+  ) => {
+    e.stopPropagation(); // Prevent opening the lesson
+    setSelectedLesson(lesson);
+    setSelectedSectionId(sectionId);
+    setCompletionTime(lesson.completionTime?.toString() || "");
+    setCompletionPercentage(lesson.completionPercentage?.toString() || "");
+    setIsSettingsModalOpen(true);
+  };
+
+  const handleSaveCompletionSettings = () => {
+    const payload = {
+      completionConditions: {
+        duration: completionTime ? parseInt(completionTime) : undefined,
+      },
+    };
+    updateLesson({
+      id: selectedLesson._id,
+      data: payload,
+
+      // completionTime: completionTime ? parseInt(completionTime) : undefined,
+      // completionPercentage: completionPercentage
+      //   ? parseInt(completionPercentage)
+      //   : undefined,
+    });
+    setIsSettingsModalOpen(false);
   };
 
   const renderLeftContent = () => {
@@ -182,14 +233,7 @@ const CourseDetailPage = () => {
             />
           );
         }
-        return (
-          // <VideoModal
-          //   lessonId={lessonId}
-          //   type={selectedType}
-          //   sectionId={selectedSectionId}
-          // />
-          <>Gì</>
-        );
+        return <>Gì</>;
 
       default:
         return null;
@@ -243,6 +287,16 @@ const CourseDetailPage = () => {
                           <GripVertical className="w-3 h-3 opacity-50" />
                           <span>{l.title}</span>
                         </div>
+
+                        {/* Settings Icon */}
+                        <button
+                          onClick={(e) =>
+                            handleOpenSettings(e, l, s._id as string)
+                          }
+                          className="p-1 rounded hover:bg-gray-200 transition-colors"
+                        >
+                          <Settings className="w-4 h-4 text-gray-500" />
+                        </button>
                       </div>
                     ))}
 
@@ -264,6 +318,69 @@ const CourseDetailPage = () => {
           ))}
         </Accordion>
       </div>
+
+      {/* Settings Modal */}
+      <Dialog open={isSettingsModalOpen} onOpenChange={setIsSettingsModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cài đặt tỷ lệ hoàn thành bài học</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Tên bài học:
+                <span className="ml-2 text-gray-900 font-semibold">
+                  {selectedLesson?.title}
+                </span>
+              </label>
+            </div>
+
+            {selectedType === "quiz" ? (
+              <div className="space-y-2">
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm text-gray-700 mb-2">
+                    Quiz sẽ được đánh dấu hoàn thành khi học viên:
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                    <li>Submit bài làm thành công</li>
+                    <li>Đạt được điểm số yêu cầu (nếu có)</li>
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Thời gian học (giây)
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="Nhập thời gian cần học (giây)"
+                    value={completionTime}
+                    onChange={(e) => setCompletionTime(e.target.value)}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Học viên cần học ít nhất thời gian này để được tính hoàn
+                    thành
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsSettingsModalOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button onClick={handleSaveCompletionSettings}>Lưu cài đặt</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

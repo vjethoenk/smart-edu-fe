@@ -65,8 +65,8 @@ export interface ISection {
 
 export interface ILesson {
   _id?: string;
-  title: string;
-  content: string;
+  title?: string;
+  content?: string;
   sectionId?: string;
   videoUrl?: string;
   type?: string;
@@ -74,6 +74,10 @@ export interface ILesson {
   quizId?: string;
   courseId?: string;
   pdfUrl?: string;
+  completionConditions?: {
+    duration?: number;
+    // type?: string;
+  };
 }
 
 export interface IQuestion {
@@ -128,4 +132,102 @@ export interface ICreateQuizQuestion {
   options: string[];
   correctAnswer: string;
   score: number;
+}
+
+export interface IAttempt {
+  _id?: string;
+  userId?: string;
+  quizId: string;
+  startTime: Date;
+  endTime?: Date;
+  score?: number;
+  status: "in_progress" | "submitted";
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface IQuizAttemptResponse {
+  attemptId: string;
+  quizId: string;
+  title: string;
+  description?: string;
+  limitTime: number;
+  passScore: number;
+  totalScore: number;
+  questionsCount: number;
+  questions: IQuizQuestionResponse[];
+}
+
+export interface IQuizQuestionResponse {
+  _id: string;
+  questionId: string;
+  content: string;
+  options: IQuizOptionResponse[];
+  score: number;
+}
+export interface IQuizOptionResponse {
+  _id?: string;
+  text: string;
+  isCorrect?: boolean;
+}
+
+export interface ICreateAttemptAnswer {
+  attemptId: string;
+  questionId: string;
+  selectedAnswer: string;
+}
+
+export interface IAttemptAnswerResponse {
+  _id: string;
+  attemptId: string;
+  questionId: string;
+  selectedAnswer: string;
+  isCorrect: boolean;
+  score: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ISubmitQuizResponse {
+  attemptId: string;
+  quizId: string;
+  title: string;
+  submitTime: string;
+  totalScore: number;
+  totalQuestions: number;
+  correctCount: number;
+  incorrectCount: number;
+  passScore: number;
+  isPassed: boolean;
+  status: "submitted";
+  message: string;
+  details: ISubmitQuizDetail[];
+}
+export interface ISubmitQuizDetail {
+  questionId: string;
+  selectedAnswer: string;
+  correctAnswer: string;
+  isCorrect: boolean;
+  score: number;
+}
+
+export interface IQuizResultData {
+  attemptId: string;
+  quizTitle: string;
+  startTime: string;
+  endTime: string;
+  totalScore: number;
+  passScore: number;
+  totalQuestions: number;
+  correctCount: number;
+  incorrectCount: number;
+  isPassed: boolean;
+  status: string;
+}
+
+export interface ITracking {
+  lessonId: string;
+  itemType: string;
+  event: string;
+  currentTime: number;
 }

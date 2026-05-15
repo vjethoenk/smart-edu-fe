@@ -16,11 +16,11 @@ export const useLogin = () => {
       if (loginData) {
         localStorage.setItem("access_token", loginData.access_token);
         Cookies.set("access_token", res.data.access_token);
-        Cookies.set("role", res.data.user.role?.name);
+        Cookies.set("role", res.data.user.role?.name || "USER");
         dispatch(
           setAuth({
             user: loginData.user,
-            role: loginData.user.role.name,
+            role: loginData.user.role?.name || "USER",
             email: loginData.user.email,
           }),
         );

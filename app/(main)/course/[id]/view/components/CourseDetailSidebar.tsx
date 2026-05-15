@@ -1,6 +1,6 @@
 // CourseDetailSidebar.tsx
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,8 @@ import {
   X,
 } from "lucide-react";
 import { ISection, ILesson } from "@/types/api";
+import { useQueries } from "@tanstack/react-query";
+import { getLessonProgressApi } from "@/features/tracking/api";
 import { getLessonTypeIcon } from "./LessonTypeIcon";
 
 const getLessonTypeLabel = (type?: string) => {
@@ -41,16 +43,35 @@ export default function CourseDetailSidebar({
   onClose?: () => void;
 }) {
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
-  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
 
   useEffect(() => {
     setExpandedSections(sections.map((section) => section._id || ""));
   }, [sections]);
 
+  const lessonIds = useMemo(
+    () => sections.flatMap((s) => s.lessons?.map((l) => l._id || "") ?? []),
+    [sections],
+  );
+
+  const lessonProgressQueries = useQueries({
+    queries: lessonIds.map((id) => ({
+      queryKey: ["lessonProgress", id],
+      queryFn: () => getLessonProgressApi(id),
+      enabled: !!id,
+    })),
+  });
+
+  const completedLessons = useMemo(() => {
+    return lessonProgressQueries
+      .map((r, idx) => ({ id: lessonIds[idx], data: r.data }))
+      .filter((x) => x.data && x.data.data && x.data.data.isCompleted)
+      .map((x) => x.id) as string[];
+  }, [lessonProgressQueries, lessonIds]);
+
   const toggleSection = (sectionId: string) => {
-    setExpandedSections((current) =>
+    setExpandedSections((current: string[]) =>
       current.includes(sectionId)
-        ? current.filter((id) => id !== sectionId)
+        ? current.filter((id: string) => id !== sectionId)
         : [...current, sectionId],
     );
   };

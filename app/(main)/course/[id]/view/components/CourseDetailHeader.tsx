@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { ICourse } from "@/types/api";
 import { useState } from "react";
+import CourseProgress from "@/components/CourseProgress";
 
 const getInitials = (name?: string) =>
   (name || "Course")
@@ -80,7 +81,7 @@ export default function CourseDetailHeader({
           </div>
 
           {/* Progress Section */}
-          <div className="bg-slate-50 rounded-xl p-4">
+          {/* <div className="bg-slate-50 rounded-xl p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <Award className="w-4 h-4 text-indigo-600" />
@@ -98,7 +99,8 @@ export default function CourseDetailHeader({
                 ? "Hoàn thành xuất sắc! 🎉"
                 : `${100 - Math.round(progressValue)}% nữa để nhận chứng chỉ`}
             </p>
-          </div>
+          </div> */}
+          <CourseProgress courseId={course._id} />
         </div>
 
         {/* Expanded Section - Chỉ hiển thị khi nhấn */}

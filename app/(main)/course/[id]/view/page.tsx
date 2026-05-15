@@ -3,10 +3,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useGetByIdCourse } from "@/features/course/hook";
+import { useAppDispatch } from "@/store/hook";
+import { setCurrentLesson, clearCurrentLesson } from "@/features/lesson/slice";
 import { ISection } from "@/types/api";
 import CourseDetailHeader from "./components/CourseDetailHeader";
 import CourseDetailSidebar from "./components/CourseDetailSidebar";
 import LessonPreview from "./components/LessonPreview";
+import { LessonTrackingProvider } from "@/components/providers/LessonTrackingProvider";
+import CourseProgress from "@/components/CourseProgress";
 
 const findLesson = (
   sections: ISection[],
@@ -70,6 +74,24 @@ const CourseDetailPage = () => {
     () => findLesson(sections, activeSectionId, activeLessonId),
     [sections, activeSectionId, activeLessonId],
   );
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (!selectedLesson?._id) return;
+
+    dispatch(
+      setCurrentLesson({
+        lessonId: selectedLesson._id,
+        itemType: selectedLesson.type ?? "lesson",
+        title: selectedLesson.title,
+      }),
+    );
+
+    return () => {
+      dispatch(clearCurrentLesson());
+    };
+  }, [dispatch, selectedLesson]);
 
   const currentLessonIndex = useMemo(
     () =>
@@ -159,15 +181,20 @@ const CourseDetailPage = () => {
         <div className="flex-1 min-w-0">
           {/* Lesson Preview - Now on top */}
           <div className="max-w-5xl mx-auto pt-6 lg:pt-8">
-            <LessonPreview
-              lesson={selectedLesson}
-              hasPrevious={hasPrev}
-              hasNext={hasNext}
-              currentIndex={currentLessonIndex + 1}
-              totalLessons={totalLessons}
-              onPrevious={() => goToLessonAtIndex(currentLessonIndex - 1)}
-              onNext={() => goToLessonAtIndex(currentLessonIndex + 1)}
-            />
+            <LessonTrackingProvider
+              lessonId={selectedLesson?._id}
+              itemType={selectedLesson?.type ?? "lesson"}
+            >
+              <LessonPreview
+                lesson={selectedLesson}
+                hasPrevious={hasPrev}
+                hasNext={hasNext}
+                currentIndex={currentLessonIndex + 1}
+                totalLessons={totalLessons}
+                onPrevious={() => goToLessonAtIndex(currentLessonIndex - 1)}
+                onNext={() => goToLessonAtIndex(currentLessonIndex + 1)}
+              />
+            </LessonTrackingProvider>
           </div>
 
           {/* Course Detail Header - Below preview */}

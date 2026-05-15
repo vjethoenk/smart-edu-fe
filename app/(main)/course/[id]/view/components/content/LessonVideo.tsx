@@ -1,8 +1,35 @@
-import { useState } from "react";
-import { Film, Volume2, Headphones, Maximize2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useCallback, useRef } from "react";
+import { Film } from "lucide-react";
+import { useLessonTracking } from "@/components/providers/LessonTrackingProvider";
 
 export const LessonVideo = ({ videoUrl }: { videoUrl?: string }) => {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const { track, setCurrentTime } = useLessonTracking();
+
+  const handleTimeUpdate = useCallback(() => {
+    const current = videoRef.current?.currentTime ?? 0;
+    setCurrentTime(current);
+  }, [setCurrentTime]);
+  const handlePlay = useCallback(() => {
+    const current = videoRef.current?.currentTime ?? 0;
+    track("play", { currentTime: current });
+  }, [track]);
+
+  const handlePause = useCallback(() => {
+    const current = videoRef.current?.currentTime ?? 0;
+    track("pause", { currentTime: current });
+  }, [track]);
+
+  const handleSeeked = useCallback(() => {
+    const current = videoRef.current?.currentTime ?? 0;
+    track("seek", { currentTime: current });
+  }, [track]);
+
+  const handleEnded = useCallback(() => {
+    const current = videoRef.current?.currentTime ?? 0;
+    track("end", { currentTime: current });
+  }, [track]);
+
   if (!videoUrl) {
     return (
       <div className="bg-gradient-to-br from-slate-100 to-slate-200 p-16 text-center">
@@ -17,10 +44,16 @@ export const LessonVideo = ({ videoUrl }: { videoUrl?: string }) => {
   return (
     <div className="relative bg-black">
       <video
+        ref={videoRef}
         className="w-full aspect-video"
         controls
         src={videoUrl}
         poster="/api/placeholder/1280/720"
+        onTimeUpdate={handleTimeUpdate}
+        onPause={handlePause}
+        onSeeked={handleSeeked}
+        onEnded={handleEnded}
+        onPlay={handlePlay}
       />
     </div>
   );

@@ -1,6 +1,4 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { FileText, Download } from "lucide-react";
+import { FileText } from "lucide-react";
 import { ILesson } from "@/types/api";
 
 const LessonPdf = ({ lesson }: { lesson: ILesson }) => {
@@ -17,14 +15,17 @@ const LessonPdf = ({ lesson }: { lesson: ILesson }) => {
           </div>
         </div>
       ) : (
-        // <div className="p-20 text-center rounded-b-3xl bg-slate-900">
-        //   <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-white/10 flex items-center justify-center">
-        //     <FileText className="w-8 h-8 text-white/70" />
-        //   </div>
-        //   <p className="text-slate-300 text-lg font-medium">PDF chưa được cập nhật</p>
-        //   <p className="text-slate-400 mt-2">Vui lòng chọn bài khác hoặc quay lại sau.</p>
-        // </div>
-        <></>
+        <div className="p-20 text-center rounded-b-3xl bg-slate-900">
+          <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-white/10 flex items-center justify-center">
+            <FileText className="w-8 h-8 text-white/70" />
+          </div>
+          <p className="text-slate-300 text-lg font-medium">
+            PDF chưa được cập nhật
+          </p>
+          <p className="text-slate-400 mt-2">
+            Vui lòng chọn bài khác hoặc quay lại sau.
+          </p>
+        </div>
       )}
     </div>
   );

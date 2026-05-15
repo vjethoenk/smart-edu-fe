@@ -6,6 +6,7 @@ export function clearAuthData() {
 
   // Clear cookies
   Cookies.remove("access_token");
+  Cookies.remove("refresh-token");
   Cookies.remove("role");
 }
 

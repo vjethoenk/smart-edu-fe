@@ -180,6 +180,7 @@ export default function QuizPage({
         content: q.content,
         options: q.options,
         correctAnswer: q.correctAnswer,
+        _id: q._id,
       })),
       limitTime: settings.limitTime,
       passScore: settings.passScore,
