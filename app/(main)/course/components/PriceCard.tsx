@@ -1,3 +1,4 @@
+import { useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { formatVND } from "@/hooks/formatVND";
 import {
@@ -12,6 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { RootState } from "@/store/type";
 
 export default function PriceCard({
   price,
@@ -21,6 +23,7 @@ export default function PriceCard({
   courseId: string;
 }) {
   const router = useRouter();
+  const user = useSelector((state: RootState) => state.auth.user);
   const isFree = !price || price === 0;
   const displayPrice = isFree
     ? "Miễn phí"
@@ -82,7 +85,15 @@ export default function PriceCard({
 
         {/* Buttons */}
         <div className="p-6 pt-5">
-          <Button className="w-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] hover:shadow-lg hover:scale-[1.02] transition-all duration-300 text-white font-semibold gap-2 rounded-xl h-12">
+          <Button
+            className="w-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] hover:shadow-lg hover:scale-[1.02] transition-all duration-300 text-white font-semibold gap-2 rounded-xl h-12"
+            onClick={() => {
+              if (!user) {
+                router.push("/login");
+                return;
+              }
+            }}
+          >
             <ShoppingCart className="w-4 h-4" />
             Thêm vào giỏ hàng
           </Button>
@@ -91,6 +102,10 @@ export default function PriceCard({
             variant="outline"
             className="w-full mt-3 border-2 border-gray-200 hover:border-[#4F46E5] hover:bg-gradient-to-r hover:from-[#4F46E5]/5 hover:to-[#7C3AED]/5 font-semibold gap-2 rounded-xl h-11 transition-all duration-300"
             onClick={() => {
+              if (!user) {
+                router.push("/login");
+                return;
+              }
               router.push(`/checkout/${courseId}`);
             }}
           >

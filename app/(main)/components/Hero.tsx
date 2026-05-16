@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { TrendingUp } from "lucide-react";
+import Link from "next/link";
 
 export default function Hero() {
   return (
@@ -20,10 +21,11 @@ export default function Hero() {
 
           <div className="flex gap-4 pt-4">
             <Button
+              asChild
               size="lg"
               className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-8 h-14 shadow-lg shadow-indigo-200"
             >
-              Bắt đầu học
+              <Link href="/enrollments">Bắt đầu học</Link>
             </Button>
             <Button
               variant="outline"

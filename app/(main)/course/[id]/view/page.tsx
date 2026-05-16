@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useGetByIdCourse } from "@/features/course/hook";
+import { useEnrollment } from "@/features/enrollment/hook";
 import { useAppDispatch } from "@/store/hook";
 import { setCurrentLesson, clearCurrentLesson } from "@/features/lesson/slice";
 import { ISection } from "@/types/api";
@@ -31,12 +32,15 @@ const findLesson = (
 
 const CourseDetailPage = () => {
   const params = useParams();
+  const router = useRouter();
   const courseId = params?.id as string;
   const {
     data: courseDetails,
     isLoading,
     isError,
   } = useGetByIdCourse(courseId);
+  const { data: enrollments, isLoading: isEnrollmentLoading } = useEnrollment();
+
   const sections = courseDetails?.sections ?? [];
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -116,7 +120,32 @@ const CourseDetailPage = () => {
 
   const totalLessons = lessonEntries.length;
 
-  if (isLoading) {
+  const isEnrolled = enrollments?.some(
+    (enrollment) => enrollment.courseId === courseId,
+  );
+
+  useEffect(() => {
+    if (
+      !isEnrollmentLoading &&
+      !isLoading &&
+      !isError &&
+      courseDetails &&
+      courseId &&
+      !isEnrolled
+    ) {
+      router.replace(`/course/${courseId}`);
+    }
+  }, [
+    courseId,
+    courseDetails,
+    isEnrolled,
+    isEnrollmentLoading,
+    isLoading,
+    isError,
+    router,
+  ]);
+
+  if (isLoading || isEnrollmentLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-indigo-50/30">
         <div className="relative">

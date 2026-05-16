@@ -71,7 +71,7 @@ export default function Navbar() {
   const { user, role } = useSelector((state: RootState) => state.auth);
 
   const menus = [
-    { name: "Khóa học", href: "/my-learning" },
+    { name: "Khóa học", href: "/course" },
     { name: "Thể loại", href: "/categories" },
     { name: "Giảng viên", href: "/mentors" },
   ];

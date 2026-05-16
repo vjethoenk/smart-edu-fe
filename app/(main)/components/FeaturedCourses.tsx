@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetCourses } from "@/features/course/hook";
+import { useEnrollment } from "@/features/enrollment/hook";
 import { useRouter } from "next/navigation";
 import { BookOpen, Star, TrendingUp, Clock, Users } from "lucide-react";
 import { formatVND } from "@/hooks/formatVND";
@@ -11,10 +12,14 @@ import { useGetCategories } from "@/features/category/hook";
 
 export default function FeaturedCourses() {
   const { data: courses, isLoading, isError } = useGetCourses();
-  const router = useRouter();
   const { data: categories } = useGetCategories();
+  const { data: enrollments } = useEnrollment();
+  const router = useRouter();
   const categoryMap = new Map(
     categories?.map((category) => [category._id, category.name]),
+  );
+  const enrolledCourseIds = new Set(
+    enrollments?.map((enrollment) => enrollment.courseId) ?? [],
   );
 
   if (isLoading) {
@@ -167,11 +172,17 @@ export default function FeaturedCourses() {
 
             <CardFooter className="p-5 ">
               <Button
-                onClick={() => router.push(`/course/${course._id}`)}
+                onClick={() =>
+                  router.push(
+                    enrolledCourseIds.has(course._id)
+                      ? `/course/${course._id}/view`
+                      : `/course/${course._id}`,
+                  )
+                }
                 className="w-full rounded-full bg-indigo-600 hover:bg-indigo-700 transition-all duration-300 group/btn h-10"
               >
                 <BookOpen className="w-4 h-4 mr-2" />
-                Xem chi tiết
+                {enrolledCourseIds.has(course._id) ? "Vào học" : "Xem chi tiết"}
               </Button>
             </CardFooter>
           </Card>
