@@ -250,3 +250,25 @@ export interface ITracking {
   event: string;
   currentTime: number;
 }
+
+export interface ICartItem {
+  _id: string;
+  courseId: ICourse; // Populated course info
+  userId: string;
+  price: number;
+  promotionId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ICartTotalResponse {
+  totalItems: number;
+  totalPrice: number;
+  totalDiscount: number;
+}
+
+export interface IAddToCartRequest {
+  courseId: string;
+  price: number;
+  promotionId?: string;
+}

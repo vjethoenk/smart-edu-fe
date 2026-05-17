@@ -5,18 +5,20 @@ import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ShoppingCart, Bell } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useLogout } from "@/features/auth/hook";
 import { RootState } from "@/store/type";
+import { useGetCartTotal } from "@/features/cart/hook";
 
 function UserMenu() {
-  const router = useRouter();
   const logout = useLogout();
   const { user, role } = useSelector((state: RootState) => state.auth);
 
   const handleLogout = () => {
     logout();
-    router.push("/login");
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
   };
 
   return (
@@ -68,12 +70,17 @@ function UserMenu() {
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, role } = useSelector((state: RootState) => state.auth);
+
+  // Lấy tổng số lượng items trong giỏ hàng
+  const { data: cartTotalData } = useGetCartTotal();
+  const totalItems = cartTotalData?.totalItems || 0;
 
   const menus = [
     { name: "Khóa học", href: "/course" },
     { name: "Thể loại", href: "/categories" },
-    { name: "Giảng viên", href: "/mentors" },
+    { name: "Giảng viên", href: "/mentor" },
   ];
 
   return (
@@ -120,8 +127,16 @@ export default function Navbar() {
             <button className="hover:text-indigo-600 transition-colors">
               <Bell className="w-[22px] h-[22px]" />
             </button>
-            <button className="hover:text-indigo-600 transition-colors">
+            <button 
+              className="hover:text-indigo-600 transition-colors relative"
+              onClick={() => router.push("/cart")}
+            >
               <ShoppingCart className="w-[22px] h-[22px]" />
+              {totalItems > 0 && (
+                <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  {totalItems > 99 ? "99+" : totalItems}
+                </span>
+              )}
             </button>
           </div>
 

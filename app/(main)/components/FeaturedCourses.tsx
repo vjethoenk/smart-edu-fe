@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,17 @@ export default function FeaturedCourses() {
   const enrolledCourseIds = new Set(
     enrollments?.map((enrollment) => enrollment.courseId) ?? [],
   );
+
+  const topCourses = React.useMemo(() => {
+    if (!courses) return [];
+    return [...courses]
+      .sort((a, b) => {
+        const countA = (a as any).enrolledCount || 0;
+        const countB = (b as any).enrolledCount || 0;
+        return countB - countA;
+      })
+      .slice(0, 4);
+  }, [courses]);
 
   if (isLoading) {
     return (
@@ -94,7 +106,7 @@ export default function FeaturedCourses() {
 
       {/* Courses Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {courses?.map((course) => (
+        {topCourses.map((course) => (
           <Card
             key={course._id}
             className="group rounded-2xl overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border-none p-0"
@@ -149,7 +161,7 @@ export default function FeaturedCourses() {
               {/* Students Count */}
               <div className="flex items-center gap-1 text-sm text-gray-500">
                 <Users className="w-4 h-4" />
-                <span> 1234+ học viên</span>
+                <span>{(course as any).enrolledCount || 0} học viên</span>
               </div>
 
               {/* Price */}

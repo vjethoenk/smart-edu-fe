@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { RootState } from "@/store/type";
+import { useAddToCart } from "@/features/cart/hook";
+import { toast } from "sonner";
 
 export default function PriceCard({
   price,
@@ -28,6 +30,27 @@ export default function PriceCard({
   const displayPrice = isFree
     ? "Miễn phí"
     : formatVND(parseFloat(price?.toString() || "0"));
+
+  const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart();
+
+  const handleAddToCart = () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    addToCart(
+      { courseId, price: Number(price) || 0 },
+      {
+        onSuccess: () => {
+          toast.success("Đã thêm khóa học vào giỏ hàng!");
+        },
+        onError: () => {
+          toast.error("Có lỗi xảy ra khi thêm vào giỏ hàng");
+        },
+      }
+    );
+  };
 
   return (
     <div className="relative  z-20 top-6 group">
@@ -87,15 +110,11 @@ export default function PriceCard({
         <div className="p-6 pt-5">
           <Button
             className="w-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] hover:shadow-lg hover:scale-[1.02] transition-all duration-300 text-white font-semibold gap-2 rounded-xl h-12"
-            onClick={() => {
-              if (!user) {
-                router.push("/login");
-                return;
-              }
-            }}
+            onClick={handleAddToCart}
+            disabled={isAddingToCart}
           >
             <ShoppingCart className="w-4 h-4" />
-            Thêm vào giỏ hàng
+            {isAddingToCart ? "Đang thêm..." : "Thêm vào giỏ hàng"}
           </Button>
 
           <Button
