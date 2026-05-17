@@ -15,6 +15,7 @@ import {
 import { useRouter } from "next/navigation";
 import { RootState } from "@/store/type";
 import { useAddToCart } from "@/features/cart/hook";
+import { useGetPromotions } from "@/features/promotion/hook";
 import { toast } from "sonner";
 
 export default function PriceCard({
@@ -26,10 +27,35 @@ export default function PriceCard({
 }) {
   const router = useRouter();
   const user = useSelector((state: RootState) => state.auth.user);
-  const isFree = !price || price === 0;
+  const { data: promotions } = useGetPromotions();
+
+  const getCoursePrice = () => {
+    const origPrice = parseFloat(price?.toString() || "0");
+    const promo = promotions?.find(
+      (p) =>
+        p.isActive &&
+        new Date(p.endDate) > new Date() &&
+        (typeof p.courseId === "string" ? p.courseId : (p.courseId as any)._id) === courseId
+    );
+
+    if (promo) {
+      return {
+        originalPrice: origPrice,
+        finalPrice: origPrice * (1 - promo.discountPercentage / 100),
+        discountPercentage: promo.discountPercentage,
+        promotionId: promo._id,
+        endDate: promo.endDate
+      };
+    }
+    return { originalPrice: null, finalPrice: origPrice, discountPercentage: 0, promotionId: undefined, endDate: null };
+  };
+
+  const { finalPrice, originalPrice, discountPercentage, promotionId, endDate } = getCoursePrice();
+
+  const isFree = !finalPrice || finalPrice === 0;
   const displayPrice = isFree
     ? "Miễn phí"
-    : formatVND(parseFloat(price?.toString() || "0"));
+    : formatVND(finalPrice);
 
   const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart();
 
@@ -40,7 +66,7 @@ export default function PriceCard({
     }
 
     addToCart(
-      { courseId, price: Number(price) || 0 },
+      { courseId, price: finalPrice, promotionId },
       {
         onSuccess: () => {
           toast.success("Đã thêm khóa học vào giỏ hàng!");
@@ -55,10 +81,10 @@ export default function PriceCard({
   return (
     <div className="relative  z-20 top-6 group">
       {/* Badge nổi bật */}
-      <div className="absolute -top-3 left-6 z-10">
+      <div className="absolute -top-3 left-6 z-10" hidden={!discountPercentage || discountPercentage === 0}>
         <div className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
           <Sparkles className="w-3 h-3" />
-          <span>TIẾT KIỆM 33%</span>
+          <span>TIẾT KIỆM {discountPercentage}%</span>
         </div>
       </div>
 
@@ -82,23 +108,23 @@ export default function PriceCard({
               <span className="text-5xl font-extrabold tracking-tight">
                 {displayPrice}
               </span>
-              {!isFree && (
+              {!isFree && originalPrice && discountPercentage > 0 && (
                 <>
                   <span className="text-sm line-through opacity-70">
-                    {formatVND(parseFloat(price?.toString() || "0") * 1.5)}
+                    {formatVND(originalPrice)}
                   </span>
                   <div className="bg-white/20 px-2 py-0.5 rounded-full text-xs font-semibold">
-                    -33%
+                    -{discountPercentage}%
                   </div>
                 </>
               )}
             </div>
 
-            {!isFree && (
-              <div className="flex items-center gap-2 mt-3">
+            {!isFree && endDate && (
+              <div className="flex items-center gap-2 mt-3 ">
                 <Clock className="w-3.5 h-3.5" />
-                <p className="text-xs opacity-90">
-                  Khuyến mãi kết thúc sau 12:34:56
+                <p className="text-xs font-medium opacity-90">
+                  Kết thúc ngày: {new Date(endDate).toLocaleDateString("vi-VN", { day: '2-digit', month: '2-digit', year: 'numeric' })}
                 </p>
                 <TrendingUp className="w-3.5 h-3.5 ml-auto" />
               </div>

@@ -272,3 +272,31 @@ export interface IAddToCartRequest {
   price: number;
   promotionId?: string;
 }
+
+// Types cho Promotions
+export interface IPromotion {
+  _id: string;
+  code: string;
+  discountPercentage: number;
+  courseId: string | ICourse;
+  description: string;
+  startDate: string;
+  endDate: string;
+  maxUsageCount: number;
+  usedCount: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface IPromotionInput {
+  code: string;
+  discountPercentage: number;
+  courseId: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  maxUsageCount: number;
+  isActive?: boolean;
+}
+

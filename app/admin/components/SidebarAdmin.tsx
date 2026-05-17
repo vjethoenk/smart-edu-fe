@@ -19,6 +19,7 @@ import {
   ListChecks,
   Shield,
   Users2,
+  Tag,
 } from "lucide-react";
 import { useState, useMemo } from "react";
 
@@ -45,6 +46,12 @@ const ALL_MENUS = [
     name: "Khóa học",
     href: "/admin/courses",
     icon: BookOpen,
+    requiredRole: null, // visible to all
+  },
+  {
+    name: "Khuyến mãi",
+    href: "/admin/promotions",
+    icon: Tag,
     requiredRole: null, // visible to all
   },
   {

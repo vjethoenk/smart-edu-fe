@@ -25,6 +25,7 @@ import {
   useCreatePayment,
   usePaymentStatus,
 } from "@/features/payment/hook";
+import { useGetPromotions } from "@/features/promotion/hook";
 import { IPayment } from "@/types/api";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -38,12 +39,39 @@ export default function CheckoutPage() {
   const [copied, setCopied] = useState(false);
   const { mutate: createPaymentMutate } = useCreatePayment();
 
+  const { data: promotions } = useGetPromotions();
+
   const paymentMutation = useCreatePayment();
+
+  const getCoursePrice = () => {
+    const origPrice = parseFloat(courseData?.price?.toString() || "0");
+    const promo = promotions?.find(
+      (p) =>
+        p.isActive &&
+        new Date(p.endDate) > new Date() &&
+        (typeof p.courseId === "string" ? p.courseId : (p.courseId as any)._id) === id
+    );
+
+    if (promo) {
+      return {
+        originalPrice: origPrice,
+        finalPrice: origPrice * (1 - promo.discountPercentage / 100),
+        discountPercentage: promo.discountPercentage,
+        promotionId: promo._id,
+      };
+    }
+    return { originalPrice: null, finalPrice: origPrice, discountPercentage: 0, promotionId: undefined };
+  };
+
+  const { finalPrice, originalPrice, discountPercentage } = getCoursePrice();
+  const subtotal = originalPrice || parseFloat(courseData?.price?.toString() || "0");
+  const total = finalPrice || subtotal;
+
   const handlePayment = () => {
     if (!id || !total) return;
 
     paymentMutation.mutate(
-      { courseId: id as string, amount: Number(courseData?.price) },
+      { courseId: id as string, amount: total },
       {
         onSuccess: (res) => {
           setPaymentData(res.data);
@@ -64,9 +92,6 @@ export default function CheckoutPage() {
       setTimeout(() => setCopied(false), 2000);
     }
   };
-
-  const subtotal = courseData?.price || 0;
-  const total = Number(subtotal);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
@@ -180,9 +205,17 @@ export default function CheckoutPage() {
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Tạm tính</span>
                       <span className="text-gray-800">
-                        {formatVND(subtotal as number)}
+                        {formatVND(subtotal)}
                       </span>
                     </div>
+                    {discountPercentage > 0 && (
+                      <div className="flex justify-between text-sm text-green-600">
+                        <span>Giảm giá ({discountPercentage}%)</span>
+                        <span className="font-medium">
+                          -{formatVND(subtotal - total)}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Phí giao dịch</span>
                       <span className="text-gray-800">Miễn phí</span>

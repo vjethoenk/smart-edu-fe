@@ -12,12 +12,33 @@ import { useGetCategories } from "@/features/category/hook";
 import { useRouter } from "next/navigation";
 import { BookOpen, Star, Users, Search, Filter, ArrowRight, TrendingUp, Clock } from "lucide-react";
 import { formatVND } from "@/hooks/formatVND";
+import { useGetPromotions } from "@/features/promotion/hook";
 
 const CourseAll = () => {
   const { data: courses, isLoading, isError } = useGetCourses();
   const { data: categories } = useGetCategories();
   const { data: enrollments } = useEnrollment();
+  const { data: promotions } = useGetPromotions();
   const router = useRouter();
+
+  const getCoursePrice = (course: any) => {
+    const originalPrice = parseFloat(course.price.toString() || "0");
+    const promo = promotions?.find(
+      (p) =>
+        p.isActive &&
+        new Date(p.endDate) > new Date() &&
+        (typeof p.courseId === "string" ? p.courseId : (p.courseId as any)._id) === course._id
+    );
+
+    if (promo) {
+      return {
+        originalPrice,
+        finalPrice: originalPrice * (1 - promo.discountPercentage / 100),
+        discountPercentage: promo.discountPercentage,
+      };
+    }
+    return { originalPrice: null, finalPrice: originalPrice, discountPercentage: 0 };
+  };
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | "ALL">("ALL");
@@ -237,10 +258,20 @@ const CourseAll = () => {
                     </p>
 
 
-                    <div className="pt-2">
+                    <div className="pt-2 flex items-baseline gap-2 flex-wrap">
                       <span className="text-xl font-bold text-gray-900">
-                        {formatVND(parseFloat(course.price.toString()))}
+                        {formatVND(getCoursePrice(course).finalPrice)}
                       </span>
+                      {getCoursePrice(course).originalPrice && getCoursePrice(course).discountPercentage > 0 && (
+                        <>
+                          <span className="text-xs line-through text-gray-400">
+                            {formatVND(getCoursePrice(course).originalPrice!)}
+                          </span>
+                          <Badge variant="destructive" className="text-[10px] px-1 py-0 h-4">
+                            -{getCoursePrice(course).discountPercentage}%
+                          </Badge>
+                        </>
+                      )}
                     </div>
                   </CardContent>
 

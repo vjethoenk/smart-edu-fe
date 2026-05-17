@@ -10,11 +10,13 @@ import { useRouter } from "next/navigation";
 import { BookOpen, Star, TrendingUp, Clock, Users } from "lucide-react";
 import { formatVND } from "@/hooks/formatVND";
 import { useGetCategories } from "@/features/category/hook";
+import { useGetPromotions } from "@/features/promotion/hook";
 
 export default function FeaturedCourses() {
   const { data: courses, isLoading, isError } = useGetCourses();
   const { data: categories } = useGetCategories();
   const { data: enrollments } = useEnrollment();
+  const { data: promotions } = useGetPromotions();
   const router = useRouter();
   const categoryMap = new Map(
     categories?.map((category) => [category._id, category.name]),
@@ -22,6 +24,25 @@ export default function FeaturedCourses() {
   const enrolledCourseIds = new Set(
     enrollments?.map((enrollment) => enrollment.courseId) ?? [],
   );
+
+  const getCoursePrice = (course: any) => {
+    const originalPrice = parseFloat(course.price.toString() || "0");
+    const promo = promotions?.find(
+      (p) =>
+        p.isActive &&
+        new Date(p.endDate) > new Date() &&
+        (typeof p.courseId === "string" ? p.courseId : (p.courseId as any)._id) === course._id
+    );
+
+    if (promo) {
+      return {
+        originalPrice,
+        finalPrice: originalPrice * (1 - promo.discountPercentage / 100),
+        discountPercentage: promo.discountPercentage,
+      };
+    }
+    return { originalPrice: null, finalPrice: originalPrice, discountPercentage: 0 };
+  };
 
   const topCourses = React.useMemo(() => {
     if (!courses) return [];
@@ -165,20 +186,20 @@ export default function FeaturedCourses() {
               </div>
 
               {/* Price */}
-              <div className="flex items-baseline gap-2 pt-2">
+              <div className="flex items-baseline gap-2 pt-2 flex-wrap">
                 <span className="text-2xl font-bold text-gray-800">
-                  {formatVND(parseFloat(course.price.toString()))}
+                  {formatVND(getCoursePrice(course).finalPrice)}
                 </span>
-                {/* {course.originalPrice && (
-                  <span className="text-sm line-through text-gray-400">
-                    {course.originalPrice.toLocaleString()}đ
-                  </span>
+                {getCoursePrice(course).originalPrice && getCoursePrice(course).discountPercentage > 0 && (
+                  <>
+                    <span className="text-sm line-through text-gray-400">
+                      {formatVND(getCoursePrice(course).originalPrice!)}
+                    </span>
+                    <Badge variant="destructive" className="text-xs">
+                      -{getCoursePrice(course).discountPercentage}%
+                    </Badge>
+                  </>
                 )}
-                {course.originalPrice && (
-                  <Badge variant="destructive" className="text-xs">
-                    -{Math.round(((course.originalPrice - course.price) / course.originalPrice) * 100)}%
-                  </Badge>
-                )} */}
               </div>
             </CardContent>
 
