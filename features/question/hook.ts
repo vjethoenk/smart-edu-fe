@@ -6,6 +6,7 @@ import {
   updateQuestionApi,
   QUESTION_PAGE_SIZE,
   addQuestionToQuizApi,
+  importQuestionsApi,
 } from "./api";
 import { toast } from "sonner";
 import { ICreateQuizQuestion } from "@/types/api";
@@ -95,6 +96,22 @@ export const useAddQuestionToQuiz = () => {
 
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || "Thêm câu hỏi thất bại!");
+    },
+  });
+};
+
+export const useImportQuestions = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: importQuestionsApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["question"] });
+    },
+    onError: (error: any) => {
+      toast.error(
+        error?.response?.data?.message || "Import câu hỏi thất bại!"
+      );
     },
   });
 };

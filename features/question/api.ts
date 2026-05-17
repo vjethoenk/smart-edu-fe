@@ -51,3 +51,21 @@ export const addQuestionToQuizApi = (
     data,
   );
 };
+
+export interface IImportQuestionsResponse {
+  message: string;
+  count: number;
+  data: IQuestion[];
+}
+
+export const importQuestionsApi = (file: FormData) => {
+  return axiosClient.post<any, ApiResponse<IImportQuestionsResponse>>(
+    "/v1/questions/import",
+    file,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+};

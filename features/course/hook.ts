@@ -8,6 +8,7 @@ import {
   updateApprovalApi,
   updateCourseApi,
   uploadImageApi,
+  getPurchaseCountApi,
 } from "./api";
 import { toast } from "sonner";
 
@@ -111,5 +112,15 @@ export const useUploadImage = () => {
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || "Upload ảnh thất bại");
     },
+  });
+};
+export const useGetPurchaseCount = (courseId: string) => {
+  return useQuery({
+    queryKey: ["purchaseCount", courseId],
+    queryFn: async () => {
+      const res = await getPurchaseCountApi(courseId);
+      return res.data;
+    },
+    enabled: !!courseId,
   });
 };

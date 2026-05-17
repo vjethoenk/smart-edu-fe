@@ -1,5 +1,10 @@
 import axiosClient from "@/lib/axios";
-import { ApiResponse, ICourse, ICourseMonitoring } from "@/types/api";
+import {
+  ApiResponse,
+  ICourse,
+  ICourseMonitoring,
+  IPurchase,
+} from "@/types/api";
 
 export const getCoursesApi = () => {
   return axiosClient.get<ApiResponse<ICourse[]>>("/v1/courses");
@@ -61,5 +66,11 @@ export const uploadImageApi = (file: FormData) => {
         "Content-Type": "multipart/form-data",
       },
     },
+  );
+};
+
+export const getPurchaseCountApi = (courseId: string) => {
+  return axiosClient.get<ApiResponse<IPurchase>>(
+    `/v1/${courseId}/purchase-count`,
   );
 };

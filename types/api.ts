@@ -300,3 +300,16 @@ export interface IPromotionInput {
   isActive?: boolean;
 }
 
+export interface IPurchase {
+  courseId: string;
+  purchaseCount: number;
+  courseTitle: string;
+}
+
+export interface WordQuestion {
+  _id?: string;
+  content: string;
+  options: string[];
+  correctAnswer: string;
+  score: number;
+}

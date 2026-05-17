@@ -21,6 +21,7 @@ import {
   MoveDown,
   Check,
   Search,
+  FileUp,
 } from "lucide-react";
 import {
   Dialog,
@@ -37,7 +38,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { useGetQuestions } from "@/features/question/hook";
+import { useGetQuestions, useImportQuestions } from "@/features/question/hook";
+import { toast } from "sonner";
 import { ApprovalStatus, EActiveView } from "@/features/course/enum";
 import {
   useCreateQuiz,
@@ -83,6 +85,8 @@ export default function QuizPage({
   const { mutateAsync: createQuizAsync, isPending: isCreating } =
     useCreateQuiz();
   const { mutate: updateQuiz, isPending: isUpdating } = useUpdateQuiz();
+  const { mutateAsync: importQuestions, isPending: isImporting } =
+    useImportQuestions();
 
   const [questions, setQuestions] = useState<any[]>([]);
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -95,6 +99,62 @@ export default function QuizPage({
     shuffleQuestions: false,
     showResult: true,
   });
+
+  const handleImportWord = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file type
+    const fileExtension = file.name.split(".").pop()?.toLowerCase();
+    if (fileExtension !== "docx" && fileExtension !== "doc") {
+      toast.error("Vui lòng tải lên file Word (.docx hoặc .doc)");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await importQuestions(formData);
+      if (res?.data && Array.isArray(res.data.data)) {
+        const importedList = res.data.data;
+        if (importedList.length === 0) {
+          toast.warning("Không tìm thấy câu hỏi nào trong file Word!");
+          return;
+        }
+
+        // Avoid duplicate questions by ID
+        const currentIds = new Set(questions.map((q) => q._id));
+        const filteredNewQuestions = importedList.filter(
+          (q: any) => !currentIds.has(q._id),
+        );
+
+        if (filteredNewQuestions.length === 0) {
+          toast.info("Tất cả câu hỏi trong file đã tồn tại trong bài quiz!");
+          return;
+        }
+
+        const formattedQuestions = filteredNewQuestions.map(
+          (q: any, idx: number) => ({
+            ...q,
+            order: questions.length + idx + 1,
+          }),
+        );
+
+        setQuestions((prev) => [...prev, ...formattedQuestions]);
+        toast.success(
+          `Import thành công ${formattedQuestions.length} câu hỏi vào bài quiz!`,
+        );
+      } else {
+        toast.error("Không thể đọc dữ liệu câu hỏi từ phản hồi của máy chủ");
+      }
+    } catch (error) {
+      // error is handled by mutation onError
+    } finally {
+      // Reset input value to allow uploading the same file again if needed
+      e.target.value = "";
+    }
+  };
 
   // Load quiz data when editing
   useEffect(() => {
@@ -310,13 +370,38 @@ export default function QuizPage({
                       {questions.length} câu hỏi • Tổng điểm: {totalScore}
                     </p>
                   </div>
-                  <Button
-                    onClick={() => setIsOpenModal(true)}
-                    className="gap-2 bg-slate-700 text-white shadow-md hover:bg-slate-800"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Thêm câu hỏi
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      disabled={isImporting}
+                      onClick={() =>
+                        document.getElementById("word-import-input")?.click()
+                      }
+                      className="gap-2 border-slate-200 text-slate-700 shadow-sm hover:bg-slate-100 hover:text-slate-900"
+                    >
+                      {isImporting ? (
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-500 border-t-transparent" />
+                      ) : (
+                        <FileUp className="h-4 w-4 text-slate-500" />
+                      )}
+                      {isImporting ? "Đang import..." : "Import từ Word"}
+                    </Button>
+                    <input
+                      id="word-import-input"
+                      type="file"
+                      accept=".docx,.doc"
+                      className="hidden"
+                      onChange={handleImportWord}
+                    />
+
+                    <Button
+                      onClick={() => setIsOpenModal(true)}
+                      className="gap-2 bg-slate-700 text-white shadow-md hover:bg-slate-800"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Thêm câu hỏi
+                    </Button>
+                  </div>
                 </div>
 
                 {questions.length > 0 ? (
@@ -373,11 +458,10 @@ export default function QuizPage({
                                     className="flex items-center gap-2 text-sm"
                                   >
                                     <div
-                                      className={`h-3 w-3 rounded-full ${
-                                        option === question.correctAnswer
-                                          ? "bg-emerald-600"
-                                          : "bg-slate-400"
-                                      }`}
+                                      className={`h-3 w-3 rounded-full ${option === question.correctAnswer
+                                        ? "bg-emerald-600"
+                                        : "bg-slate-400"
+                                        }`}
                                     />
                                     <span
                                       className={
@@ -415,14 +499,40 @@ export default function QuizPage({
                   <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-12">
                     <HelpCircle className="mb-3 h-12 w-12 text-slate-400" />
                     <p className="text-slate-500">Chưa có câu hỏi nào</p>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsOpenModal(true)}
-                      className="mt-3 gap-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Thêm câu hỏi đầu tiên
-                    </Button>
+                    <div className="mt-3 flex gap-2">
+                      <Button
+                        variant="outline"
+                        disabled={isImporting}
+                        onClick={() =>
+                          document
+                            .getElementById("word-import-input-empty")
+                            ?.click()
+                        }
+                        className="gap-2 border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-100 hover:text-slate-900"
+                      >
+                        {isImporting ? (
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-500 border-t-transparent" />
+                        ) : (
+                          <FileUp className="h-4 w-4 text-slate-500" />
+                        )}
+                        {isImporting ? "Đang import..." : "Import từ Word"}
+                      </Button>
+                      <input
+                        id="word-import-input-empty"
+                        type="file"
+                        accept=".docx,.doc"
+                        className="hidden"
+                        onChange={handleImportWord}
+                      />
+
+                      <Button
+                        onClick={() => setIsOpenModal(true)}
+                        className="gap-2 bg-slate-700 text-white shadow-md hover:bg-slate-800 border-0"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Thêm câu hỏi đầu tiên
+                      </Button>
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -568,11 +678,10 @@ export default function QuizPage({
               return (
                 <div
                   key={question._id}
-                  className={`rounded-xl border p-4 transition-all ${
-                    isAdded
-                      ? "border-emerald-200 bg-emerald-50/30"
-                      : "border-slate-200 bg-white hover:shadow-md"
-                  }`}
+                  className={`rounded-xl border p-4 transition-all ${isAdded
+                    ? "border-emerald-200 bg-emerald-50/30"
+                    : "border-slate-200 bg-white hover:shadow-md"
+                    }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -603,11 +712,10 @@ export default function QuizPage({
                             className="flex items-center gap-2 text-sm"
                           >
                             <div
-                              className={`h-2 w-2 rounded-full ${
-                                option === question.correctAnswer
-                                  ? "bg-emerald-600"
-                                  : "bg-slate-400"
-                              }`}
+                              className={`h-2 w-2 rounded-full ${option === question.correctAnswer
+                                ? "bg-emerald-600"
+                                : "bg-slate-400"
+                                }`}
                             />
                             <span className="text-slate-600">{option}</span>
                           </div>
