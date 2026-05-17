@@ -88,7 +88,7 @@ export interface IQuestion {
   correctAnswer: string;
   status?: string;
   createdAt?: string;
-  createBy: {
+  createBy?: {
     _id: string;
     email: string;
   };

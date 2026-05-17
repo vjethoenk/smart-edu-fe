@@ -49,10 +49,16 @@ const ALL_MENUS = [
     requiredRole: null, // visible to all
   },
   {
+    name: "Quản lý học viên",
+    href: "/admin/students",
+    icon: GraduationCap,
+    requiredRole: null, // visible to all
+  },
+  {
     name: "Khuyến mãi",
     href: "/admin/promotions",
     icon: Tag,
-    requiredRole: null, // visible to all
+    requiredRole: "ADMIN", // visible to all
   },
   {
     name: "Câu hỏi",
@@ -109,6 +115,9 @@ const SidebarAdmin = ({ isCollapsed, toggleSidebar }: Props) => {
         }
         if (menu.href === "/admin/questions") {
           return { ...menu, href: "/instructor/questions" };
+        }
+        if (menu.href === "/admin/students") {
+          return { ...menu, href: "/instructor/students" };
         }
         // Redirect main admin page to instructor page
         if (menu.href === "/admin") {
@@ -191,6 +200,12 @@ const SidebarAdmin = ({ isCollapsed, toggleSidebar }: Props) => {
                   pathname.startsWith("/admin/questions")
                 );
               }
+              if (item.href === "/instructor/students") {
+                return (
+                  pathname.startsWith("/instructor/students") ||
+                  pathname.startsWith("/admin/students")
+                );
+              }
 
               return (
                 pathname === item.href || pathname.startsWith(item.href + "/")
@@ -223,7 +238,7 @@ const SidebarAdmin = ({ isCollapsed, toggleSidebar }: Props) => {
                   className={cn(
                     "w-5 h-5 transition-all duration-200",
                     !isCollapsed &&
-                      "group-hover:scale-110 group-hover:rotate-3",
+                    "group-hover:scale-110 group-hover:rotate-3",
                   )}
                 />
 
