@@ -1,18 +1,74 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Eye,
+  EyeOff,
   Mail,
   Lock,
+  User,
   GraduationCap,
   Rocket,
   Target,
   HeartHandshake,
 } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useRegister } from "@/features/auth/hook";
+import { toast } from "sonner";
 
 export default function RegisterPage() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+  const { mutate, isPending } = useRegister();
+
+  const handleRegister = () => {
+    if (!name || !email || !password) {
+      toast.error("Vui lòng nhập đầy đủ thông tin!");
+      return;
+    }
+
+    // Kiểm tra định dạng email cơ bản
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Định dạng email không hợp lệ!");
+      return;
+    }
+
+    // Kiểm tra độ dài mật khẩu
+    if (password.length < 6) {
+      toast.error("Mật khẩu phải chứa ít nhất 6 ký tự!");
+      return;
+    }
+
+    mutate(
+      { name, email, password },
+      {
+        onSuccess: () => {
+          toast.success("Đăng ký tài khoản thành công!", {
+            description: "Chào mừng bạn đến với Smart-Edu. Vui lòng đăng nhập để bắt đầu học tập.",
+          });
+          // Chuyển hướng sang trang đăng nhập sau 1.5 giây để người dùng đọc thông báo thành công
+          setTimeout(() => {
+            router.push("/login");
+          }, 1500);
+        },
+        onError: (error: any) => {
+          const message =
+            error.response?.data?.message || "Đăng ký thất bại. Email có thể đã tồn tại!";
+          toast.error("Đăng ký thất bại", {
+            description: message,
+          });
+        },
+      }
+    );
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4 font-sans">
       <div className="flex w-full max-w-5xl overflow-hidden rounded-[2rem] bg-white shadow-2xl">
@@ -114,9 +170,11 @@ export default function RegisterPage() {
                   Họ và tên
                 </Label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                  <User className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                   <Input
                     placeholder="Nguyễn Văn A"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     className="h-14 rounded-2xl border-none bg-[#F3F4F6] pl-12 placeholder:text-gray-400 focus-visible:ring-indigo-600"
                   />
                 </div>
@@ -129,6 +187,8 @@ export default function RegisterPage() {
                   <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                   <Input
                     placeholder="ten.ban@academy.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="h-14 rounded-2xl border-none bg-[#F3F4F6] pl-12 placeholder:text-gray-400 focus-visible:ring-indigo-600"
                   />
                 </div>
@@ -143,16 +203,31 @@ export default function RegisterPage() {
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                   <Input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     className="h-14 rounded-2xl border-none bg-[#F3F4F6] pl-12 pr-12 placeholder:text-gray-400 focus-visible:ring-indigo-600"
                   />
-                  <Eye className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 cursor-pointer" />
+                  <span
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 cursor-pointer flex items-center justify-center hover:text-indigo-600 transition-colors"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </span>
                 </div>
               </div>
 
-              <Button className="h-14 w-full rounded-2xl bg-[#3F3DC9] text-lg font-semibold shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95 cursor-pointer">
-                Đăng kí ngay
+              <Button
+                onClick={handleRegister}
+                disabled={isPending}
+                className="h-14 w-full rounded-2xl bg-[#3F3DC9] text-lg font-semibold shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed disabled:active:scale-100"
+              >
+                {isPending ? "Đang đăng ký..." : "Đăng kí ngay"}
               </Button>
             </div>
 
@@ -207,3 +282,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+

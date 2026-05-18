@@ -145,7 +145,7 @@ export default function FeaturedCourses() {
                   {typeof course.categoryId === "object"
                     ? (course.categoryId as any).name
                     : categoryMap.get(course.categoryId as string) ||
-                      String(course.categoryId)}
+                    String(course.categoryId)}
                 </Badge>
               </div>
             </div>
@@ -167,11 +167,10 @@ export default function FeaturedCourses() {
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`w-4 h-4 ${
-                        i < Math.floor(4.5)
-                          ? "text-yellow-400 fill-yellow-400"
-                          : "text-gray-300"
-                      }`}
+                      className={`w-4 h-4 ${i < Math.floor(4.5)
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-gray-300"
+                        }`}
                     />
                   ))}
                 </div>
@@ -180,10 +179,10 @@ export default function FeaturedCourses() {
               </div>
 
               {/* Students Count */}
-              <div className="flex items-center gap-1 text-sm text-gray-500">
+              {/* <div className="flex items-center gap-1 text-sm text-gray-500">
                 <Users className="w-4 h-4" />
                 <span>{(course as any).enrolledCount || 0} học viên</span>
-              </div>
+              </div> */}
 
               {/* Price */}
               <div className="flex items-baseline gap-2 pt-2 flex-wrap">
@@ -203,7 +202,7 @@ export default function FeaturedCourses() {
               </div>
             </CardContent>
 
-            <CardFooter className="p-5 ">
+            <CardFooter className="p-5 border-t-0 pt-0">
               <Button
                 onClick={() =>
                   router.push(
@@ -212,7 +211,7 @@ export default function FeaturedCourses() {
                       : `/course/${course._id}`,
                   )
                 }
-                className="w-full rounded-full bg-indigo-600 hover:bg-indigo-700 transition-all duration-300 group/btn h-10"
+                className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700 transition-all duration-300 group/btn h-10"
               >
                 <BookOpen className="w-4 h-4 mr-2" />
                 {enrolledCourseIds.has(course._id) ? "Vào học" : "Xem chi tiết"}

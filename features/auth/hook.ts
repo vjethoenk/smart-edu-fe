@@ -1,9 +1,15 @@
 import { useMutation } from "@tanstack/react-query";
-import { loginApi } from "./api";
+import { loginApi, registerApi } from "./api";
 import { useDispatch } from "react-redux";
 import { setAuth, logout } from "./slice";
 import Cookies from "js-cookie";
 import { clearAuthData } from "@/lib/auth-utils";
+
+export const useRegister = () => {
+  return useMutation({
+    mutationFn: registerApi,
+  });
+};
 
 export const useLogin = () => {
   const dispatch = useDispatch();
