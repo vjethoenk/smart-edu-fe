@@ -20,6 +20,7 @@ import {
   Shield,
   Users2,
   Tag,
+  MessageCircle,
 } from "lucide-react";
 import { useState, useMemo } from "react";
 
@@ -46,6 +47,12 @@ const ALL_MENUS = [
     name: "Khóa học",
     href: "/admin/courses",
     icon: BookOpen,
+    requiredRole: null, // visible to all
+  },
+  {
+    name: "Chat",
+    href: "/admin/chat",
+    icon: MessageCircle,
     requiredRole: null, // visible to all
   },
   {
@@ -118,6 +125,9 @@ const SidebarAdmin = ({ isCollapsed, toggleSidebar }: Props) => {
         }
         if (menu.href === "/admin/students") {
           return { ...menu, href: "/instructor/students" };
+        }
+        if (menu.href === "/admin/chat") {
+          return { ...menu, href: "/instructor/chat" };
         }
         // Redirect main admin page to instructor page
         if (menu.href === "/admin") {
@@ -238,7 +248,7 @@ const SidebarAdmin = ({ isCollapsed, toggleSidebar }: Props) => {
                   className={cn(
                     "w-5 h-5 transition-all duration-200",
                     !isCollapsed &&
-                    "group-hover:scale-110 group-hover:rotate-3",
+                      "group-hover:scale-110 group-hover:rotate-3",
                   )}
                 />
 

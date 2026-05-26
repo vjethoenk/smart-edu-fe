@@ -1,24 +1,31 @@
 // CourseDetailHeader.tsx - Phiên bản tối giản & đẹp mắt
 "use client";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
-  Clock,
   BookOpen,
   GraduationCap,
   Award,
   Users,
   Star,
-  Target,
   Sparkles,
   CheckCircle,
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { ICourse } from "@/types/api";
 import { useState } from "react";
 import CourseProgress from "@/components/CourseProgress";
+import { ChatPanel } from "@/components/chat/ChatPanel";
 
 const getInitials = (name?: string) =>
   (name || "Course")
@@ -120,18 +127,43 @@ export default function CourseDetailHeader({
             )}
 
             {/* Giảng viên */}
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200">
-              <Avatar className="h-10 w-10">
-                <AvatarFallback className="bg-indigo-600 text-white text-sm">
-                  {getInitials(course.createBy?.name)}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-xs text-slate-500">Giảng viên</p>
-                <p className="font-semibold text-slate-800 text-sm">
-                  {course.createBy?.name}
-                </p>
+            <div className="flex flex-col gap-4 p-3 rounded-xl bg-white border border-slate-200">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback className="bg-indigo-600 text-white text-sm">
+                    {getInitials(course.createBy?.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-xs text-slate-500">Giảng viên</p>
+                  <p className="font-semibold text-slate-800 text-sm">
+                    {course.createBy?.name}
+                  </p>
+                </div>
               </div>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="secondary" className="w-full md:w-auto">
+                    Nhắn tin với giảng viên
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-5xl w-full">
+                  <DialogHeader>
+                    <DialogTitle>
+                      Nhắn tin với {course.createBy?.name}
+                    </DialogTitle>
+                    <DialogDescription>
+                      Bắt đầu trò chuyện trực tiếp với giảng viên của khóa học.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <ChatPanel
+                    title="Chat với giảng viên"
+                    subtitle={`Khóa học ${course.title}`}
+                    defaultCourseId={course._id}
+                    defaultReceiverId={course.createBy?._id}
+                  />
+                </DialogContent>
+              </Dialog>
             </div>
 
             {/* Bạn sẽ học được */}

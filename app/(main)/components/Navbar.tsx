@@ -81,6 +81,7 @@ export default function Navbar() {
     { name: "Khóa học", href: "/course" },
     { name: "Thể loại", href: "/categories" },
     { name: "Giảng viên", href: "/mentor" },
+    { name: "Tin nhắn", href: "/chat" },
   ];
 
   return (
@@ -127,7 +128,7 @@ export default function Navbar() {
             <button className="hover:text-indigo-600 transition-colors">
               <Bell className="w-[22px] h-[22px]" />
             </button>
-            <button 
+            <button
               className="hover:text-indigo-600 transition-colors relative"
               onClick={() => router.push("/cart")}
             >
