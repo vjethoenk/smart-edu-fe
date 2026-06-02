@@ -216,6 +216,7 @@ const CourseDetailPage = () => {
             >
               <LessonPreview
                 lesson={selectedLesson}
+                courseId={courseId}
                 hasPrevious={hasPrev}
                 hasNext={hasNext}
                 currentIndex={currentLessonIndex + 1}

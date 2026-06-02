@@ -34,8 +34,8 @@ const PdfModal = (props: IPops) => {
   useEffect(() => {
     if (lessonId && lessonDetail) {
       setForm({
-        title: lessonDetail.title,
-        content: lessonDetail.content,
+        title: lessonDetail.title || "",
+        content: lessonDetail.content || "",
         pdfUrl: lessonDetail.pdfUrl || "",
         courseId: id as string,
       });

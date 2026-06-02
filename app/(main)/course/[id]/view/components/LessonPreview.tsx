@@ -15,10 +15,16 @@ import {
   ChevronLeft,
   ChevronRight,
   CheckCircle,
+  Award,
+  Loader2,
 } from "lucide-react";
 import { LessonVideo } from "./content/LessonVideo";
 import LessonPdf from "./content/LessonPdf";
 import LessonQuiz from "./content/LessonQuiz";
+import { useGetCourseProgress } from "@/features/tracking/hook";
+import { useGetCertificateByCourse, useClaimCertificate } from "@/features/certificate/hook";
+import CertificateModal from "./CertificateModal";
+import { toast } from "sonner";
 
 const getTypeConfig = (type?: string) => {
   const lowerType = type?.toLowerCase();
@@ -66,8 +72,10 @@ const EmptyState = () => (
     </div>
   </div>
 );
+
 export default function LessonPreview({
   lesson,
+  courseId,
   hasPrevious,
   hasNext,
   currentIndex,
@@ -76,6 +84,7 @@ export default function LessonPreview({
   onNext,
 }: {
   lesson: ILesson | null;
+  courseId: string;
   hasPrevious: boolean;
   hasNext: boolean;
   currentIndex: number;
@@ -84,6 +93,35 @@ export default function LessonPreview({
   onNext: () => void;
 }) {
   const [isLiked, setIsLiked] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Fetch course progress
+  const { data: progressData } = useGetCourseProgress(courseId);
+  const progressPercent = progressData?.data?.progressPercent ?? 0;
+  const isCompleted = Math.round(progressPercent) === 100;
+
+  // Check if certificate already exists
+  const { data: existingCertificate } = useGetCertificateByCourse(courseId, isCompleted);
+  const claimCertificateMutation = useClaimCertificate();
+
+  // Active certificate data
+  const certificateData = existingCertificate?.data || claimCertificateMutation.data?.data;
+
+  const handleClaimCertificate = () => {
+    if (certificateData) {
+      setIsModalOpen(true);
+      return;
+    }
+
+    claimCertificateMutation.mutate(courseId, {
+      onSuccess: () => {
+        setIsModalOpen(true);
+      },
+      onError: (err: any) => {
+        toast.error(err?.response?.data?.message || err?.message || "Không thể nhận chứng chỉ");
+      },
+    });
+  };
 
   if (!lesson) return <EmptyState />;
 
@@ -159,13 +197,33 @@ export default function LessonPreview({
             {/* <div className="text-sm text-slate-500">
               {currentIndex}/{totalLessons}
             </div> */}
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="rounded-full border-slate-300"
-              >
-                <CheckCircle className="w-4 h-4 mr-2" /> Hoàn thành
-              </Button>
+            <div className="flex gap-3 items-center">
+              {isCompleted ? (
+                <Button
+                  onClick={handleClaimCertificate}
+                  disabled={claimCertificateMutation.isPending}
+                  className="rounded-full shadow-md text-white font-semibold transition-all duration-300 hover:scale-105 active:scale-95 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                >
+                  {claimCertificateMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Đang nhận...
+                    </>
+                  ) : (
+                    <>
+                      <Award className="w-4 h-4 mr-2 animate-pulse" />
+                      🎓 Nhận chứng chỉ hoàn thành
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="rounded-full border-slate-300 cursor-default"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2 text-slate-400" /> Hoàn thành
+                </Button>
+              )}
               <Button
                 className={cn(
                   "rounded-full shadow-md",
@@ -183,6 +241,16 @@ export default function LessonPreview({
           </div>
         </div>
       </div>
+
+      {/* Certificate Modal */}
+      {certificateData && (
+        <CertificateModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          certificate={certificateData}
+        />
+      )}
     </div>
   );
 }
+

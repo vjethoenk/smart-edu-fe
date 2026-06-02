@@ -95,7 +95,7 @@ export default function Curriculum({
               <AccordionContent className="px-5 pb-4 pt-2 bg-white">
                 <div className="space-y-1">
                   {section.lessons?.map((lesson, lessonIdx) => {
-                    const LessonIcon = getLessonIcon(lesson.title);
+                    const LessonIcon = getLessonIcon(lesson.title || "");
                     return (
                       <div
                         key={lesson._id}

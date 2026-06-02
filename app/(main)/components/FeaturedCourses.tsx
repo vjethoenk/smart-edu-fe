@@ -31,7 +31,9 @@ export default function FeaturedCourses() {
       (p) =>
         p.isActive &&
         new Date(p.endDate) > new Date() &&
-        (typeof p.courseId === "string" ? p.courseId : (p.courseId as any)._id) === course._id
+        (typeof p.courseId === "string"
+          ? p.courseId
+          : (p.courseId as any)._id) === course._id,
     );
 
     if (promo) {
@@ -41,7 +43,11 @@ export default function FeaturedCourses() {
         discountPercentage: promo.discountPercentage,
       };
     }
-    return { originalPrice: null, finalPrice: originalPrice, discountPercentage: 0 };
+    return {
+      originalPrice: null,
+      finalPrice: originalPrice,
+      discountPercentage: 0,
+    };
   };
 
   const topCourses = React.useMemo(() => {
@@ -145,7 +151,7 @@ export default function FeaturedCourses() {
                   {typeof course.categoryId === "object"
                     ? (course.categoryId as any).name
                     : categoryMap.get(course.categoryId as string) ||
-                    String(course.categoryId)}
+                      String(course.categoryId)}
                 </Badge>
               </div>
             </div>
@@ -161,44 +167,22 @@ export default function FeaturedCourses() {
                   "Khóa học chất lượng cao với nội dung được cập nhật liên tục"}
               </p>
 
-              {/* Rating */}
-              <div className="flex items-center gap-2">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-4 h-4 ${i < Math.floor(4.5)
-                        ? "text-yellow-400 fill-yellow-400"
-                        : "text-gray-300"
-                        }`}
-                    />
-                  ))}
-                </div>
-                <span className="text-sm font-medium text-gray-700">{4.5}</span>
-                <span className="text-xs text-gray-400">({128} đánh giá)</span>
-              </div>
-
-              {/* Students Count */}
-              {/* <div className="flex items-center gap-1 text-sm text-gray-500">
-                <Users className="w-4 h-4" />
-                <span>{(course as any).enrolledCount || 0} học viên</span>
-              </div> */}
-
               {/* Price */}
               <div className="flex items-baseline gap-2 pt-2 flex-wrap">
                 <span className="text-2xl font-bold text-gray-800">
                   {formatVND(getCoursePrice(course).finalPrice)}
                 </span>
-                {getCoursePrice(course).originalPrice && getCoursePrice(course).discountPercentage > 0 && (
-                  <>
-                    <span className="text-sm line-through text-gray-400">
-                      {formatVND(getCoursePrice(course).originalPrice!)}
-                    </span>
-                    <Badge variant="destructive" className="text-xs">
-                      -{getCoursePrice(course).discountPercentage}%
-                    </Badge>
-                  </>
-                )}
+                {getCoursePrice(course).originalPrice &&
+                  getCoursePrice(course).discountPercentage > 0 && (
+                    <>
+                      <span className="text-sm line-through text-gray-400">
+                        {formatVND(getCoursePrice(course).originalPrice!)}
+                      </span>
+                      <Badge variant="destructive" className="text-xs">
+                        -{getCoursePrice(course).discountPercentage}%
+                      </Badge>
+                    </>
+                  )}
               </div>
             </CardContent>
 
