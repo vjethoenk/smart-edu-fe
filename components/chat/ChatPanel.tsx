@@ -486,7 +486,7 @@ export function ChatPanel({
                   {typingIndicator}
                 </div>
               )}
-              <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+              <div className="grid gap-3 w-full sm:grid-cols-[1fr_auto]">
                 <Textarea
                   value={messageText}
                   onChange={(event) => {
