@@ -38,3 +38,15 @@ export const getAttemptResultsApi = (attemptId: string) => {
     `/v1/attempts/${attemptId}/result`,
   );
 };
+
+export const getAttemptAnswersApi = (attemptId: string) => {
+  return axiosClient.get<ApiResponse<IAttemptAnswerResponse[]>>(
+    `/v1/attempt-answers/attempt/${attemptId}`,
+  );
+};
+
+export const getLatestAttemptByQuizApi = (quizId: string) => {
+  return axiosClient.get<ApiResponse<IAttempt>>(
+    `/v1/attempts/quiz/${quizId}/latest`,
+  );
+};

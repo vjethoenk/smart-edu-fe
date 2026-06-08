@@ -21,7 +21,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { useSaveAnswer, useSubmitQuiz } from "@/features/attempt/hook";
-import { useLessonTracking } from "@/components/providers/LessonTrackingProvider";
+import { useCreateTracking } from "@/features/tracking/hook";
+import { useSearchParams } from "next/navigation";
 
 interface Question {
   _id: string;
@@ -43,6 +44,10 @@ interface Quiz {
 
 const QuizDetailPage = () => {
   const { id, attemptId } = useParams();
+  const searchParams = useSearchParams();
+  const lessonId = searchParams.get("lessonId");
+  const courseId = searchParams.get("courseId");
+
   const { data, isLoading, isError } = useGetQuestion(id as string);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -55,7 +60,7 @@ const QuizDetailPage = () => {
 
   const { mutate: saveAnswer } = useSaveAnswer();
   const { mutate: submitQuiz } = useSubmitQuiz();
-  const { track } = useLessonTracking();
+  const { mutate: sendTrackingEvent } = useCreateTracking();
 
   const handleChooseAnswer = (questionId: string, selectedAnswer: string) => {
     saveAnswer({
@@ -70,7 +75,17 @@ const QuizDetailPage = () => {
       { attemptId: attemptId as string },
       {
         onSuccess: () => {
-          track("complete");
+          if (lessonId) {
+            sendTrackingEvent({
+              data: {
+                lessonId,
+                itemType: "quiz",
+                event: "complete",
+                currentTime: 0,
+              },
+              courseId: courseId || undefined,
+            });
+          }
         },
       },
     );

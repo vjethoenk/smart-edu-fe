@@ -6,24 +6,28 @@ export const useCreateTracking = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: createTrackingApi,
-    onSuccess: (data, variables: any) => {
+    mutationFn: (variables: { data: any; courseId?: string }) =>
+      createTrackingApi(variables.data),
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["Tracking"] });
       // Invalidate lesson and course progress so UI updates without reload
       try {
-        if (variables?.lessonId) {
+        const trackingData = variables?.data;
+        const courseId = variables?.courseId;
+
+        if (trackingData?.lessonId) {
           queryClient.invalidateQueries({
-            queryKey: ["lessonProgress", variables.lessonId],
+            queryKey: ["lessonProgress", trackingData.lessonId],
           });
         }
-        if (variables?.courseId) {
+
+        // Only invalidate course progress on progress-changing events to prevent excessive fetches during heartbeats
+        const isProgressChangingEvent = ["close", "end", "complete", "passed", "submit"].includes(trackingData?.event);
+        if (courseId && isProgressChangingEvent) {
           queryClient.invalidateQueries({
-            queryKey: ["courseProgress", variables.courseId],
+            queryKey: ["courseProgress", courseId],
           });
         }
-        // Also invalidate any generic progress queries
-        queryClient.invalidateQueries({ queryKey: ["lessonProgress"] });
-        queryClient.invalidateQueries({ queryKey: ["courseProgress"] });
       } catch (e) {
         // ignore
       }

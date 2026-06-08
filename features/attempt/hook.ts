@@ -1,7 +1,9 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   createAttemptApi,
+  getAttemptAnswersApi,
   getAttemptResultsApi,
+  getLatestAttemptByQuizApi,
   saveAnswerApi,
   submitAnswersApi,
 } from "./api";
@@ -52,5 +54,21 @@ export const useGetAttemptResults = (attemptId: string) => {
     queryKey: ["attemptResults", attemptId],
     queryFn: () => getAttemptResultsApi(attemptId),
     enabled: !!attemptId,
+  });
+};
+
+export const useGetAttemptAnswers = (attemptId: string) => {
+  return useQuery({
+    queryKey: ["attemptAnswers", attemptId],
+    queryFn: () => getAttemptAnswersApi(attemptId),
+    enabled: !!attemptId,
+  });
+};
+
+export const useGetLatestAttemptByQuiz = (quizId?: string) => {
+  return useQuery({
+    queryKey: ["latestAttempt", quizId],
+    queryFn: () => getLatestAttemptByQuizApi(quizId as string),
+    enabled: !!quizId,
   });
 };

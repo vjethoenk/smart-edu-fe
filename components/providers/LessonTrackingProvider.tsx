@@ -22,6 +22,7 @@ interface LessonTrackingContextValue {
   currentTime: number;
   lessonId?: string;
   itemType?: string;
+  courseId?: string;
 }
 
 const LessonTrackingContext = createContext<LessonTrackingContextValue | null>(
@@ -47,7 +48,7 @@ export const useLessonTracking = () => {
         event,
         currentTime: metadata?.currentTime ?? 0,
       };
-      sendEvent(payload);
+      sendEvent({ data: payload });
     };
 
     return {
@@ -56,6 +57,7 @@ export const useLessonTracking = () => {
       currentTime: 0,
       lessonId: lessonState.currentLessonId ?? undefined,
       itemType: lessonState.currentLessonType ?? undefined,
+      courseId: undefined,
     };
   }, [context, lessonState, sendEvent]);
 };
@@ -64,12 +66,14 @@ interface LessonTrackingProviderProps {
   children: React.ReactNode;
   lessonId?: string;
   itemType?: string;
+  courseId?: string;
 }
 
 export const LessonTrackingProvider = ({
   children,
   lessonId,
   itemType,
+  courseId,
 }: LessonTrackingProviderProps) => {
   const { mutate: sendEvent } = useCreateTracking();
   const [currentTime, setCurrentTime] = useState(0);
@@ -90,9 +94,9 @@ export const LessonTrackingProvider = ({
         event,
         currentTime: metadata?.currentTime ?? currentTimeRef.current,
       };
-      sendEvent(payload);
+      sendEvent({ data: payload, courseId });
     },
-    [itemType, lessonId, sendEvent, isCompleted],
+    [itemType, lessonId, sendEvent, isCompleted, courseId],
   );
 
   const stopHeartbeat = useCallback(() => {
@@ -175,8 +179,9 @@ export const LessonTrackingProvider = ({
       currentTime,
       lessonId,
       itemType,
+      courseId,
     }),
-    [currentTime, itemType, lessonId, track],
+    [currentTime, itemType, lessonId, track, courseId],
   );
 
   return (

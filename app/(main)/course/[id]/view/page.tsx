@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useGetByIdCourse } from "@/features/course/hook";
@@ -111,12 +111,37 @@ const CourseDetailPage = () => {
   const hasNext =
     currentLessonIndex >= 0 && currentLessonIndex < lessonEntries.length - 1;
 
-  const goToLessonAtIndex = (index: number) => {
-    const entry = lessonEntries[index];
-    if (!entry) return;
-    setActiveSectionId(entry.sectionId);
-    setActiveLessonId(entry.lessonId);
-  };
+  const goToLessonAtIndex = useCallback(
+    (index: number) => {
+      const entry = lessonEntries[index];
+      if (!entry) return;
+      setActiveSectionId(entry.sectionId);
+      setActiveLessonId(entry.lessonId);
+    },
+    [lessonEntries],
+  );
+
+  const handlePreviousLesson = useCallback(() => {
+    goToLessonAtIndex(currentLessonIndex - 1);
+  }, [goToLessonAtIndex, currentLessonIndex]);
+
+  const handleNextLesson = useCallback(() => {
+    goToLessonAtIndex(currentLessonIndex + 1);
+  }, [goToLessonAtIndex, currentLessonIndex]);
+
+  const handleSelectLesson = useCallback((sectionId: string, lessonId: string) => {
+    setActiveSectionId(sectionId);
+    setActiveLessonId(lessonId);
+    setIsSidebarOpen(false);
+  }, []);
+
+  const handleToggleSidebar = useCallback(() => {
+    setIsSidebarOpen((current) => !current);
+  }, []);
+
+  const handleCloseSidebar = useCallback(() => {
+    setIsSidebarOpen(false);
+  }, []);
 
   const totalLessons = lessonEntries.length;
 
@@ -196,7 +221,7 @@ const CourseDetailPage = () => {
         <button
           type="button"
           className="group rounded-full shadow-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-indigo-500/25 transition-all duration-300 w-14 h-14 text-white flex items-center justify-center"
-          onClick={() => setIsSidebarOpen((current) => !current)}
+          onClick={handleToggleSidebar}
         >
           {isSidebarOpen ? (
             <X className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
@@ -213,6 +238,7 @@ const CourseDetailPage = () => {
             <LessonTrackingProvider
               lessonId={selectedLesson?._id}
               itemType={selectedLesson?.type ?? "lesson"}
+              courseId={courseId}
             >
               <LessonPreview
                 lesson={selectedLesson}
@@ -221,8 +247,8 @@ const CourseDetailPage = () => {
                 hasNext={hasNext}
                 currentIndex={currentLessonIndex + 1}
                 totalLessons={totalLessons}
-                onPrevious={() => goToLessonAtIndex(currentLessonIndex - 1)}
-                onNext={() => goToLessonAtIndex(currentLessonIndex + 1)}
+                onPrevious={handlePreviousLesson}
+                onNext={handleNextLesson}
               />
             </LessonTrackingProvider>
           </div>
@@ -246,12 +272,8 @@ const CourseDetailPage = () => {
             sections={sections}
             activeSectionId={activeSectionId}
             activeLessonId={activeLessonId}
-            onSelectLesson={(sectionId, lessonId) => {
-              setActiveSectionId(sectionId);
-              setActiveLessonId(lessonId);
-              setIsSidebarOpen(false);
-            }}
-            onClose={() => setIsSidebarOpen(false)}
+            onSelectLesson={handleSelectLesson}
+            onClose={handleCloseSidebar}
           />
         </div>
       </div>
@@ -259,7 +281,7 @@ const CourseDetailPage = () => {
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 lg:hidden animate-in fade-in duration-300"
-          onClick={() => setIsSidebarOpen(false)}
+          onClick={handleCloseSidebar}
         />
       )}
     </div>
