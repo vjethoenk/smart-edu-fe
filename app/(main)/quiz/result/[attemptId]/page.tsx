@@ -21,7 +21,12 @@ import {
 } from "lucide-react";
 
 import { useParams, useRouter } from "next/navigation";
-import { useGetAttemptResults } from "@/features/attempt/hook";
+import {
+  useGetAttemptResults,
+  useGetAttemptAnswers,
+} from "@/features/attempt/hook";
+import { useGetQuestion } from "@/features/quiz/hook";
+import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -31,6 +36,8 @@ import { cn } from "@/lib/utils";
 export default function QuizResult() {
   const { attemptId } = useParams();
   const router = useRouter();
+  const [showDetails, setShowDetails] = useState(false);
+  const detailsRef = useRef<HTMLDivElement>(null);
 
   const {
     data: response,
@@ -38,12 +45,28 @@ export default function QuizResult() {
     error,
   } = useGetAttemptResults(attemptId as string);
 
+  const quizId = response?.data?.quizId;
+
+  // Lấy danh sách câu trả lời của user
+  const { data: answersResponse, isLoading: isAnswersLoading } =
+    useGetAttemptAnswers(attemptId as string);
+
+  // Lấy danh sách câu hỏi gốc của quiz
+  const { data: quizResponse, isLoading: isQuizLoading } = useGetQuestion(
+    quizId as string,
+  );
+
   const handleRetry = () => {
     router.back();
   };
 
-  const handleBack = () => {
-    router.back();
+  const handleToggleDetails = () => {
+    setShowDetails(!showDetails);
+    if (!showDetails) {
+      setTimeout(() => {
+        detailsRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
   };
 
   if (isLoading) {
@@ -69,7 +92,11 @@ export default function QuizResult() {
             <p className="text-slate-500 text-sm mb-6">
               Không thể tải kết quả bài làm. Vui lòng thử lại sau.
             </p>
-            <Button onClick={handleBack} variant="outline" className="w-full">
+            <Button
+              onClick={() => router.back()}
+              variant="outline"
+              className="w-full"
+            >
               Quay lại
             </Button>
           </CardContent>
@@ -80,6 +107,13 @@ export default function QuizResult() {
 
   const data = response?.data;
   if (!data) return null;
+
+  const questions = (quizResponse?.data?.[0] as any)?.questions || [];
+  const userAnswers = answersResponse?.data || [];
+
+  const userAnswersMap = new Map(
+    userAnswers.map((ans) => [ans.questionId, ans]),
+  );
 
   // Format time
   const formatTime = (dateString: string) => {
@@ -281,16 +315,191 @@ export default function QuizResult() {
                 Làm lại bài quiz
               </Button>
               <Button
-                onClick={handleBack}
+                onClick={handleToggleDetails}
                 variant="outline"
                 className="flex-1 border-2 hover:bg-slate-50"
               >
                 <BarChart className="w-4 h-4 mr-2" />
-                Xem chi tiết câu hỏi
+                {showDetails ? "Ẩn chi tiết câu hỏi" : "Xem chi tiết câu hỏi"}
               </Button>
             </div>
           </CardContent>
         </Card>
+
+        {/* Question Details Section */}
+        {showDetails && (
+          <div
+            ref={detailsRef}
+            className="space-y-6 mt-8 pt-8 border-t border-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-300"
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl md:text-2xl font-bold text-slate-800">
+                Chi tiết câu hỏi & đáp án
+              </h2>
+              <Badge
+                variant="outline"
+                className="text-indigo-600 border-indigo-200 bg-indigo-50 font-medium"
+              >
+                Chế độ xem lại
+              </Badge>
+            </div>
+
+            {isAnswersLoading || isQuizLoading ? (
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardContent className="p-8 text-center">
+                  <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-3" />
+                  <p className="text-slate-500 text-sm">
+                    Đang tải chi tiết câu hỏi...
+                  </p>
+                </CardContent>
+              </Card>
+            ) : questions.length === 0 ? (
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardContent className="p-8 text-center">
+                  <AlertCircle className="w-8 h-8 text-amber-500 mx-auto mb-3" />
+                  <p className="text-slate-500 text-sm">
+                    Không thể tải thông tin câu hỏi của bài quiz này.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                {questions.map((question: any, index: number) => {
+                  const userAnswer = userAnswersMap.get(question._id);
+                  const isCorrect = userAnswer?.isCorrect;
+
+                  return (
+                    <Card
+                      key={question._id}
+                      className="border-0 shadow-md hover:shadow-lg transition-shadow duration-200 bg-white"
+                    >
+                      <CardContent className="p-6">
+                        {/* Question Header */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-2.5 py-1 border-0">
+                              Câu {index + 1}
+                            </Badge>
+                            {userAnswer ? (
+                              isCorrect ? (
+                                <Badge className="bg-emerald-500 text-white border-0 font-medium">
+                                  Chính xác
+                                </Badge>
+                              ) : (
+                                <Badge className="bg-rose-500 text-white border-0 font-medium">
+                                  Chưa chính xác
+                                </Badge>
+                              )
+                            ) : (
+                              <Badge className="bg-slate-400 text-white border-0 font-medium">
+                                Chưa trả lời
+                              </Badge>
+                            )}
+                          </div>
+
+                          <div className="text-sm font-semibold text-slate-500">
+                            Điểm số:{" "}
+                            <span
+                              className={cn(
+                                isCorrect
+                                  ? "text-emerald-600"
+                                  : "text-rose-500",
+                              )}
+                            >
+                              {userAnswer?.score || 0}
+                            </span>
+                            /{question.score || 1}
+                          </div>
+                        </div>
+
+                        {/* Question Content */}
+                        <h3 className="text-base md:text-lg font-semibold text-slate-800 mb-4 leading-relaxed">
+                          {question.content}
+                        </h3>
+
+                        {/* Options List */}
+                        <div className="space-y-3">
+                          {question.options?.map(
+                            (option: string, optionIndex: number) => {
+                              const optionLetter = String.fromCharCode(
+                                65 + optionIndex,
+                              );
+                              const isSelected =
+                                userAnswer?.selectedAnswer === option;
+                              const isCorrectAnswer =
+                                question.correctAnswer === option;
+
+                              let optionStyle =
+                                "border-slate-100 bg-white text-slate-700 hover:bg-slate-50";
+                              let statusIcon = null;
+
+                              if (isCorrectAnswer) {
+                                optionStyle =
+                                  "border-emerald-500 bg-emerald-50/30 text-emerald-900 font-medium";
+                                statusIcon = (
+                                  <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                                );
+                              } else if (isSelected && !isCorrect) {
+                                optionStyle =
+                                  "border-rose-500 bg-rose-50/30 text-rose-900 font-medium";
+                                statusIcon = (
+                                  <XCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
+                                );
+                              }
+
+                              return (
+                                <div
+                                  key={optionIndex}
+                                  className={cn(
+                                    "flex items-center justify-between p-4 rounded-xl border transition-all duration-200",
+                                    optionStyle,
+                                  )}
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <div
+                                      className={cn(
+                                        "w-7 h-7 rounded-lg flex items-center justify-center font-semibold text-sm flex-shrink-0",
+                                        isCorrectAnswer
+                                          ? "bg-emerald-500 text-white"
+                                          : isSelected && !isCorrect
+                                            ? "bg-rose-500 text-white"
+                                            : "bg-slate-100 text-slate-500",
+                                      )}
+                                    >
+                                      {optionLetter}
+                                    </div>
+                                    <span className="text-sm md:text-base pt-0.5">
+                                      {option}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {isSelected && (
+                                      <span
+                                        className={cn(
+                                          "text-xs px-2.5 py-0.5 rounded-full font-semibold",
+                                          isCorrect
+                                            ? "bg-emerald-100 text-emerald-800"
+                                            : "bg-rose-100 text-rose-800",
+                                        )}
+                                      >
+                                        Lựa chọn của bạn
+                                      </span>
+                                    )}
+                                    {statusIcon}
+                                  </div>
+                                </div>
+                              );
+                            },
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

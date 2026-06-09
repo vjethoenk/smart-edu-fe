@@ -232,6 +232,7 @@ export interface ISubmitQuizDetail {
 
 export interface IQuizResultData {
   attemptId: string;
+  quizId: string;
   quizTitle: string;
   startTime: string;
   endTime: string;

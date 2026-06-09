@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Zap, Eye } from "lucide-react";
 import { ILesson } from "@/types/api";
-import { useCreateAttempt, useGetLatestAttemptByQuiz } from "@/features/attempt/hook";
+import {
+  useCreateAttempt,
+  useGetLatestAttemptByQuiz,
+} from "@/features/attempt/hook";
 import { useRouter } from "next/navigation";
 import { useLessonTracking } from "@/components/providers/LessonTrackingProvider";
 import { useGetLessonProgress } from "@/features/tracking/hook";
@@ -20,6 +23,7 @@ const LessonQuiz = ({ lesson }: { lesson: ILesson }) => {
     isCompleted ? (lesson.quizId as string) : undefined,
   );
   const latestAttemptId = latestAttemptData?.data?._id;
+  console.log("Latest Attempt ID:", latestAttemptId);
 
   const handleStartQuiz = () => {
     track("start");
@@ -66,7 +70,7 @@ const LessonQuiz = ({ lesson }: { lesson: ILesson }) => {
         </p>
         {lesson.quizId ? (
           <div className="flex gap-3">
-            {isCompleted && latestAttemptId ? (
+            {isCompleted ? (
               <Button
                 onClick={handleViewResult}
                 className="gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
