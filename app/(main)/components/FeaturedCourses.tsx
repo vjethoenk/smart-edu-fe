@@ -11,9 +11,18 @@ import { BookOpen, Star, TrendingUp, Clock, Users } from "lucide-react";
 import { formatVND } from "@/hooks/formatVND";
 import { useGetCategories } from "@/features/category/hook";
 import { useGetPromotions } from "@/features/promotion/hook";
+import { useGetStatisticsTopCourses } from "@/features/statistics/hook";
 
 export default function FeaturedCourses() {
   const { data: courses, isLoading, isError } = useGetCourses();
+  const {
+    data: topCoursesStats,
+    isLoading: isLoadingTop,
+    isError: isErrorTop,
+  } = useGetStatisticsTopCourses({
+    type: "students",
+    limit: 5,
+  });
   const { data: categories } = useGetCategories();
   const { data: enrollments } = useEnrollment();
   const { data: promotions } = useGetPromotions();
@@ -26,7 +35,7 @@ export default function FeaturedCourses() {
   );
 
   const getCoursePrice = (course: any) => {
-    const originalPrice = parseFloat(course.price.toString() || "0");
+    const originalPrice = parseFloat(String(course.price ?? "0")) || 0;
     const promo = promotions?.find(
       (p) =>
         p.isActive &&
@@ -51,17 +60,28 @@ export default function FeaturedCourses() {
   };
 
   const topCourses = React.useMemo(() => {
-    if (!courses) return [];
-    return [...courses]
-      .sort((a, b) => {
-        const countA = (a as any).enrolledCount || 0;
-        const countB = (b as any).enrolledCount || 0;
-        return countB - countA;
+    if (!topCoursesStats) return [];
+    const courseMap = new Map(
+      (courses ?? []).map((course: any) => [course._id, course]),
+    );
+    return topCoursesStats
+      .map((stat: any) => {
+        const courseDetail = courseMap.get(stat.courseId);
+        return {
+          ...courseDetail,
+          ...stat,
+          _id: courseDetail?._id ?? stat.courseId,
+          title: courseDetail?.title ?? stat.title,
+        };
       })
+      .filter(
+        (course: any) =>
+          course.status === "approved" || course.status === undefined,
+      )
       .slice(0, 4);
-  }, [courses]);
+  }, [courses, topCoursesStats]);
 
-  if (isLoading) {
+  if (isLoading || isLoadingTop) {
     return (
       <div className="container mx-auto px-6 py-16">
         <div className="flex items-center justify-between mb-6">
@@ -91,7 +111,7 @@ export default function FeaturedCourses() {
     );
   }
 
-  if (isError) {
+  if (isError || isErrorTop) {
     return (
       <div className="container mx-auto px-6 py-16 text-center">
         <div className="text-red-600 mb-4">
@@ -141,7 +161,7 @@ export default function FeaturedCourses() {
             {/* Image Container */}
             <div className="relative overflow-hidden h-48">
               <img
-                src={course.thumbnail}
+                src={course.thumbnail || "/api/placeholder/400/300"}
                 alt={course.title}
                 className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
               />
@@ -167,12 +187,21 @@ export default function FeaturedCourses() {
                   "Khóa học chất lượng cao với nội dung được cập nhật liên tục"}
               </p>
 
+              <div className="flex items-center gap-2 text-sm text-indigo-600 font-medium">
+                <Users className="w-4 h-4" />
+                {course.students ?? 0} lượt mua
+              </div>
+
               {/* Price */}
               <div className="flex items-baseline gap-2 pt-2 flex-wrap">
                 <span className="text-2xl font-bold text-gray-800">
-                  {formatVND(getCoursePrice(course).finalPrice)}
+                  {typeof course.price !== "undefined" && course.price !== null
+                    ? formatVND(getCoursePrice(course).finalPrice)
+                    : "Liên hệ"}
                 </span>
-                {getCoursePrice(course).originalPrice &&
+                {typeof course.price !== "undefined" &&
+                  course.price !== null &&
+                  getCoursePrice(course).originalPrice &&
                   getCoursePrice(course).discountPercentage > 0 && (
                     <>
                       <span className="text-sm line-through text-gray-400">

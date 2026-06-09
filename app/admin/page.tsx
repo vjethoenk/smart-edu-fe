@@ -100,6 +100,15 @@ export default function AdminDashboard() {
       <div className="h-8 w-36 bg-slate-200 rounded"></div>
     </div>
   );
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    return [hours, minutes, secs]
+      .map((v) => String(v).padStart(2, "0"))
+      .join(":");
+  };
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-6 lg:p-8 space-y-8">
@@ -640,6 +649,7 @@ export default function AdminDashboard() {
                 return (
                   <div className="divide-y divide-slate-50">
                     {courses.map((course, index) => {
+                      console.log("Course:", courses);
                       const numberMetric =
                         topCoursesType === "revenue"
                           ? formatVND(course.revenue || 0)
@@ -648,7 +658,7 @@ export default function AdminDashboard() {
                       const subMetric =
                         topCoursesType === "revenue"
                           ? `${course.sales || 0} lượt mua`
-                          : `${formatVND(course.revenue || 0)} doanh thu`;
+                          : ``;
 
                       return (
                         <div
@@ -801,10 +811,8 @@ export default function AdminDashboard() {
                         Thời lượng
                       </span>
                       <p className="text-xs font-extrabold text-slate-800 line-clamp-1">
-                        {Math.round(
-                          (videosOverview?.totalDuration || 0) / 3600,
-                        )}{" "}
-                        giờ
+                        {/* {Math.round(videosOverview?.totalDuration || 0)} giờ */}
+                        {formatDuration(videosOverview?.totalDuration || 0)}
                       </p>
                     </div>
                   </div>
@@ -814,100 +822,6 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Orders and Payments Stats Section */}
-      <Card className="rounded-2xl border-slate-100 shadow-sm bg-white overflow-hidden">
-        <CardHeader className="border-b border-slate-50 pb-6">
-          <CardTitle className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5 text-indigo-500" />
-            <span>Thống kê Giao dịch & Đơn hàng</span>
-          </CardTitle>
-          <p className="text-xs font-medium text-slate-400 mt-1">
-            Theo dõi chi tiết tình trạng thanh toán và doanh thu thực tế.
-          </p>
-        </CardHeader>
-        <CardContent className="p-6">
-          {isOrdersLoading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-indigo-600" />
-            </div>
-          ) : !ordersSummary ? (
-            <div className="text-center py-6 text-slate-400 text-sm font-semibold">
-              Không có giao dịch nào được ghi nhận.
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div className="space-y-1">
-                  <span className="text-xs font-bold text-slate-400 uppercase">
-                    Tổng doanh thu bán hàng
-                  </span>
-                  <h3 className="text-3xl font-extrabold text-slate-900">
-                    {formatVND(ordersSummary.totalRevenue || 0)}
-                  </h3>
-                </div>
-                <div className="flex items-center gap-2 bg-indigo-50/50 border border-indigo-100 rounded-xl px-4 py-2 text-indigo-600">
-                  <ShoppingCart className="h-4.5 w-4.5" />
-                  <span className="text-xs font-extrabold">
-                    Tổng cộng: {ordersSummary.totalOrders || 0} đơn hàng
-                  </span>
-                </div>
-              </div>
-
-              {/* Progress bars of orders breakdown */}
-              <div className="space-y-4 pt-4 border-t border-slate-50">
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Trạng thái đơn hàng
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {ordersSummary.statusSummary?.map((item) => {
-                    const statusText =
-                      item.status === "completed" || item.status === "COMPLETED"
-                        ? "Thành công"
-                        : item.status === "failed" || item.status === "FAILED"
-                          ? "Thất bại"
-                          : "Đang chờ thanh toán";
-
-                    const colorClass =
-                      item.status === "completed" || item.status === "COMPLETED"
-                        ? "bg-emerald-500"
-                        : item.status === "failed" || item.status === "FAILED"
-                          ? "bg-rose-500"
-                          : "bg-amber-500";
-
-                    const percent = ordersSummary.totalOrders
-                      ? (item.count / ordersSummary.totalOrders) * 100
-                      : 0;
-
-                    return (
-                      <div
-                        key={item.status}
-                        className="bg-slate-50/50 p-4 rounded-xl border border-slate-100 space-y-2 hover:border-slate-200 transition-colors"
-                      >
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="font-bold text-slate-700">
-                            {statusText}
-                          </span>
-                          <span className="font-extrabold text-slate-800">
-                            {item.count} đơn ({Math.round(percent)}%)
-                          </span>
-                        </div>
-                        <Progress
-                          value={percent}
-                          className={`h-2 [&>div]:${colorClass}`}
-                        />
-                        <p className="text-xs font-extrabold text-slate-600 pt-1">
-                          Tổng tiền: {formatVND(item.revenue || 0)}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

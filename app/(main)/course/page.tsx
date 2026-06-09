@@ -10,7 +10,33 @@ import { useGetCourses } from "@/features/course/hook";
 import { useEnrollment } from "@/features/enrollment/hook";
 import { useGetCategories } from "@/features/category/hook";
 import { useRouter } from "next/navigation";
-import { BookOpen, Star, Users, Search, Filter, ArrowRight, TrendingUp, Clock } from "lucide-react";
+import {
+  BookOpen,
+  Star,
+  Users,
+  Search,
+  Filter,
+  TrendingUp,
+  Clock,
+  ChevronDown,
+  X,
+  SlidersHorizontal,
+  Tag,
+  DollarSign,
+  Gift,
+  Sparkles,
+  Gem,
+  Layers,
+  Library,
+  GraduationCap,
+  Code,
+  Palette,
+  Music,
+  Camera,
+  Briefcase,
+  Heart,
+  Zap,
+} from "lucide-react";
 import { formatVND } from "@/hooks/formatVND";
 import { useGetPromotions } from "@/features/promotion/hook";
 
@@ -27,7 +53,9 @@ const CourseAll = () => {
       (p) =>
         p.isActive &&
         new Date(p.endDate) > new Date() &&
-        (typeof p.courseId === "string" ? p.courseId : (p.courseId as any)._id) === course._id
+        (typeof p.courseId === "string"
+          ? p.courseId
+          : (p.courseId as any)._id) === course._id,
     );
 
     if (promo) {
@@ -37,14 +65,75 @@ const CourseAll = () => {
         discountPercentage: promo.discountPercentage,
       };
     }
-    return { originalPrice: null, finalPrice: originalPrice, discountPercentage: 0 };
+    return {
+      originalPrice: null,
+      finalPrice: originalPrice,
+      discountPercentage: 0,
+    };
   };
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | "ALL">("ALL");
+  const [selectedCategory, setSelectedCategory] = useState<string | "ALL">(
+    "ALL",
+  );
+  const [priceSort, setPriceSort] = useState<"none" | "low-high" | "high-low">(
+    "none",
+  );
+  const [selectedPriceRange, setSelectedPriceRange] = useState<string>("ALL");
+  const [isFilterMobileOpen, setIsFilterMobileOpen] = useState(false);
+
+  const priceRanges = [
+    { id: "ALL", label: "Tất cả", min: 0, max: Infinity, icon: Layers },
+    { id: "free", label: "Miễn phí", min: 0, max: 0, icon: Gift },
+    {
+      id: "500k",
+      label: "Dưới 500.000đ",
+      min: 0,
+      max: 500000,
+      icon: DollarSign,
+    },
+    {
+      id: "500k-1m",
+      label: "500.000đ - 1.000.000đ",
+      min: 500000,
+      max: 1000000,
+      icon: Tag,
+    },
+    {
+      id: "1m-2m",
+      label: "1.000.000đ - 2.000.000đ",
+      min: 1000000,
+      max: 2000000,
+      icon: Sparkles,
+    },
+    {
+      id: "above-2m",
+      label: "Trên 2.000.000đ",
+      min: 2000000,
+      max: Infinity,
+      icon: Gem,
+    },
+  ];
+
+  // Map category icons
+  const getCategoryIcon = (categoryName: string) => {
+    const iconMap: { [key: string]: any } = {
+      "Lập trình": Code,
+      "Thiết kế": Palette,
+      "Âm nhạc": Music,
+      "Nhiếp ảnh": Camera,
+      "Kinh doanh": Briefcase,
+      "Phát triển bản thân": Heart,
+      "Khoa học": GraduationCap,
+      "Ngôn ngữ": BookOpen,
+    };
+    return iconMap[categoryName] || Library;
+  };
 
   const categoryMap = useMemo(() => {
-    return new Map(categories?.map((category) => [category._id, category.name]));
+    return new Map(
+      categories?.map((category) => [category._id, category.name]),
+    );
   }, [categories]);
 
   const enrolledCourseIds = useMemo(() => {
@@ -55,22 +144,50 @@ const CourseAll = () => {
   const filteredCourses = useMemo(() => {
     if (!courses) return [];
 
-    return courses.filter((course) => {
-      // Search by title
-      const matchSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase());
+    let filtered = courses.filter((course) => {
+      if (course.status !== "approved") return false;
 
-      // Filter by category
-      const courseCategoryId = typeof course.categoryId === 'object' ? (course.categoryId as any)._id : course.categoryId;
-      const matchCategory = selectedCategory === "ALL" || courseCategoryId === selectedCategory;
+      const matchSearch = course.title
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
 
-      return matchSearch && matchCategory;
+      const courseCategoryId =
+        typeof course.categoryId === "object"
+          ? (course.categoryId as any)._id
+          : course.categoryId;
+      const matchCategory =
+        selectedCategory === "ALL" || courseCategoryId === selectedCategory;
+
+      const coursePrice = getCoursePrice(course).finalPrice;
+      const priceRange = priceRanges.find((r) => r.id === selectedPriceRange);
+      const matchPriceRange =
+        !priceRange ||
+        (coursePrice >= priceRange.min && coursePrice <= priceRange.max);
+
+      return matchSearch && matchCategory && matchPriceRange;
     });
-  }, [courses, searchQuery, selectedCategory]);
 
-  // Get featured courses (first 4 for demo)
-  const featuredCourses = useMemo(() => {
-    return filteredCourses.slice(0, 4);
-  }, [filteredCourses]);
+    if (priceSort === "low-high") {
+      filtered = [...filtered].sort((a, b) => {
+        const priceA = getCoursePrice(a).finalPrice;
+        const priceB = getCoursePrice(b).finalPrice;
+        return priceA - priceB;
+      });
+    } else if (priceSort === "high-low") {
+      filtered = [...filtered].sort((a, b) => {
+        const priceA = getCoursePrice(a).finalPrice;
+        const priceB = getCoursePrice(b).finalPrice;
+        return priceB - priceA;
+      });
+    }
+
+    return filtered;
+  }, [courses, searchQuery, selectedCategory, selectedPriceRange, priceSort]);
+
+  const hasActiveFilters =
+    selectedCategory !== "ALL" ||
+    selectedPriceRange !== "ALL" ||
+    priceSort !== "none";
 
   if (isLoading) {
     return (
@@ -83,7 +200,10 @@ const CourseAll = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {[...Array(8)].map((_, i) => (
-              <Card key={i} className="rounded-xl overflow-hidden border-0 shadow-lg">
+              <Card
+                key={i}
+                className="rounded-xl overflow-hidden border-0 shadow-lg"
+              >
                 <Skeleton className="h-52 w-full" />
                 <CardContent className="p-5 space-y-3">
                   <Skeleton className="h-4 w-24" />
@@ -104,8 +224,14 @@ const CourseAll = () => {
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">😔</div>
-          <div className="text-red-600 mb-4 text-lg">Đã có lỗi xảy ra khi tải danh sách khóa học</div>
-          <Button variant="outline" onClick={() => window.location.reload()} className="rounded-full">
+          <div className="text-red-600 mb-4 text-lg">
+            Đã có lỗi xảy ra khi tải danh sách khóa học
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => window.location.reload()}
+            className="rounded-full"
+          >
             Thử lại
           </Button>
         </div>
@@ -146,7 +272,7 @@ const CourseAll = () => {
               />
               <Button
                 className="absolute right-1 top-1 h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-6"
-                onClick={() => { }}
+                onClick={() => {}}
               >
                 Tìm kiếm
               </Button>
@@ -155,156 +281,383 @@ const CourseAll = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-12">
-        {/* Stats Section */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-          {[
-            { label: "Khóa học", value: courses?.length || 0, icon: BookOpen },
-            { label: "Học viên", value: "10,000+", icon: Users },
-            { label: "Giảng viên", value: "100+", icon: TrendingUp },
-            { label: "Đánh giá", value: "4.8/5", icon: Star }
-          ].map((stat, idx) => (
-            <div key={idx} className="bg-white rounded-2xl p-6 text-center shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-indigo-100 rounded-full mb-3">
-                <stat.icon className="w-6 h-6 text-indigo-600" />
+      <div className="container mx-auto px-4 py-8">
+        {/* Mobile Filter Button */}
+        <div className="lg:hidden mb-6">
+          <Button
+            onClick={() => setIsFilterMobileOpen(!isFilterMobileOpen)}
+            className="w-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+            variant="outline"
+          >
+            <SlidersHorizontal className="w-4 h-4 mr-2" />
+            Bộ lọc{" "}
+            {hasActiveFilters &&
+              `(${[
+                selectedCategory !== "ALL" ? 1 : 0,
+                selectedPriceRange !== "ALL" ? 1 : 0,
+                priceSort !== "none" ? 1 : 0,
+              ].reduce((a, b) => a + b, 0)})`}
+          </Button>
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar Filter - Desktop */}
+          <div
+            className={`lg:block ${isFilterMobileOpen ? "block" : "hidden"} lg:w-80 flex-shrink-0`}
+          >
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 sticky top-24">
+              {/* Filter Header */}
+              <div className="p-5 border-b border-gray-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-5 h-5 text-indigo-600" />
+                    <h3 className="font-semibold text-gray-900">Bộ lọc</h3>
+                  </div>
+                  {hasActiveFilters && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedCategory("ALL");
+                        setSelectedPriceRange("ALL");
+                        setPriceSort("none");
+                      }}
+                      className="text-xs text-red-500 hover:text-red-600 hover:bg-red-50"
+                    >
+                      Xóa tất cả
+                    </Button>
+                  )}
+                </div>
               </div>
-              <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-              <div className="text-sm text-gray-500">{stat.label}</div>
-            </div>
-          ))}
-        </div>
 
-        {/* Categories Filter */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">Danh mục khóa học</h2>
-              <p className="text-gray-500 mt-1">Chọn danh mục để lọc khóa học phù hợp</p>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Filter className="w-4 h-4" />
-              <span>Lọc theo danh mục</span>
-            </div>
-          </div>
+              <div className="p-5 space-y-6">
+                {/* Danh mục */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <BookOpen className="w-4 h-4 text-indigo-600" />
+                    <span className="text-sm font-semibold text-gray-700">
+                      Danh mục
+                    </span>
+                  </div>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    <button
+                      onClick={() => setSelectedCategory("ALL")}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center gap-2 ${
+                        selectedCategory === "ALL"
+                          ? "bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-md"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <Layers className="w-4 h-4" />
+                      Tất cả khóa học
+                    </button>
+                    {categories?.map((cat) => {
+                      const IconComponent = getCategoryIcon(cat.name);
+                      return (
+                        <button
+                          key={cat._id}
+                          onClick={() => setSelectedCategory(cat._id)}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center gap-2 ${
+                            selectedCategory === cat._id
+                              ? "bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-md"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          <IconComponent className="w-4 h-4" />
+                          {cat.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-          <div className="flex flex-wrap gap-3">
-            <Button
-              variant={selectedCategory === "ALL" ? "default" : "outline"}
-              className={`rounded-full px-6 py-2 h-auto font-medium transition-all ${selectedCategory === "ALL"
-                ? "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md"
-                : "hover:border-indigo-300 hover:text-indigo-600"
-                }`}
-              onClick={() => setSelectedCategory("ALL")}
-            >
-              Tất cả
-            </Button>
-            {categories?.map((cat) => (
-              <Button
-                key={cat._id}
-                variant={selectedCategory === cat._id ? "default" : "outline"}
-                className={`rounded-full px-6 py-2 h-auto font-medium transition-all ${selectedCategory === cat._id
-                  ? "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md"
-                  : "hover:border-indigo-300 hover:text-indigo-600"
-                  }`}
-                onClick={() => setSelectedCategory(cat._id)}
-              >
-                {cat.name}
-              </Button>
-            ))}
-          </div>
-        </div>
+                {/* Khoảng giá */}
+                <div className="pt-4 border-t border-gray-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <DollarSign className="w-4 h-4 text-indigo-600" />
+                    <span className="text-sm font-semibold text-gray-700">
+                      Khoảng giá
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {priceRanges.map((range) => {
+                      const IconComponent = range.icon;
+                      return (
+                        <button
+                          key={range.id}
+                          onClick={() => setSelectedPriceRange(range.id)}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${
+                            selectedPriceRange === range.id
+                              ? "bg-gradient-to-r from-indigo-600  to-indigo-500 text-white shadow-md"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <IconComponent className="w-4 h-4" />
+                            <span>{range.label}</span>
+                          </span>
+                          {selectedPriceRange === range.id && (
+                            <ChevronDown className="w-4 h-4 transform -rotate-90" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
+                {/* Sắp xếp */}
+                <div className="pt-4 border-t border-gray-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <TrendingUp className="w-4 h-4 text-indigo-600" />
+                    <span className="text-sm font-semibold text-gray-700">
+                      Sắp xếp
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => setPriceSort("low-high")}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${
+                        priceSort === "low-high"
+                          ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="text-lg">↑</span>
+                        <span>Giá tăng dần</span>
+                      </span>
+                      {priceSort === "low-high" && (
+                        <ChevronDown className="w-4 h-4 transform -rotate-90" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setPriceSort("high-low")}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${
+                        priceSort === "high-low"
+                          ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="text-lg">↓</span>
+                        <span>Giá giảm dần</span>
+                      </span>
+                      {priceSort === "high-low" && (
+                        <ChevronDown className="w-4 h-4 transform -rotate-90" />
+                      )}
+                    </button>
+                  </div>
+                </div>
 
-
-        {/* All Courses Section */}
-        <div>
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Tất cả khóa học</h2>
-            <p className="text-gray-500 mt-1">
-              Tìm thấy <span className="font-bold text-indigo-600">{filteredCourses.length}</span> khóa học
-            </p>
-          </div>
-
-          {filteredCourses.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {filteredCourses.map((course) => (
-                <Card
-                  key={course._id}
-                  className="group rounded-2xl p-0 overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-500 hover:-translate-y-1 bg-white cursor-pointer"
-                  onClick={() => router.push(enrolledCourseIds.has(course._id) ? `/course/${course._id}/view` : `/course/${course._id}`)}
-                >
-                  <div className="relative overflow-hidden h-48">
-                    <img
-                      src={course.thumbnail || "/api/placeholder/400/300"}
-                      alt={course.title}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute top-3 left-3">
-                      <Badge className="bg-indigo-600/90 backdrop-blur-sm text-white border-0 text-xs">
-                        {typeof course.categoryId === "object"
-                          ? (course.categoryId as any).name
-                          : categoryMap.get(course.categoryId as string) || String(course.categoryId)}
-                      </Badge>
+                {/* Active Filters Summary */}
+                {hasActiveFilters && (
+                  <div className="pt-4 border-t border-gray-100">
+                    <div className="p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl">
+                      <div className="text-xs text-gray-600 mb-2">
+                        Đang lọc theo:
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {selectedCategory !== "ALL" && (
+                          <Badge className="bg-indigo-100 text-indigo-700 text-xs border-0">
+                            {
+                              categories?.find(
+                                (c) => c._id === selectedCategory,
+                              )?.name
+                            }
+                          </Badge>
+                        )}
+                        {selectedPriceRange !== "ALL" && (
+                          <Badge className="bg-indigo-100 text-indigo-700 text-xs border-0">
+                            {
+                              priceRanges.find(
+                                (r) => r.id === selectedPriceRange,
+                              )?.label
+                            }
+                          </Badge>
+                        )}
+                        {priceSort !== "none" && (
+                          <Badge className="bg-indigo-100 text-indigo-700 text-xs border-0">
+                            {priceSort === "low-high"
+                              ? "Giá tăng dần"
+                              : "Giá giảm dần"}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
+                )}
+              </div>
+            </div>
+          </div>
 
-                  <CardContent className="p-4 space-y-2 ">
-                    <h3 className="font-semibold text-base line-clamp-2 text-gray-900 group-hover:text-indigo-600 transition-colors">
-                      {course.title}
-                    </h3>
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* Stats Bar */}
+            <div className="bg-white rounded-xl p-4 mb-6 shadow-sm border border-gray-100 flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                  <BookOpen className="w-4 h-4 text-indigo-600" />
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Hiển thị</span>
+                  <span className="font-semibold text-gray-900 ml-1">
+                    {filteredCourses.length} khóa học
+                  </span>
+                </div>
+              </div>
 
-                    <p className="text-xs text-gray-500 line-clamp-2">
-                      {course.description || "Khóa học chất lượng cao với nội dung được cập nhật liên tục"}
-                    </p>
-
-
-                    <div className="pt-2 flex items-baseline gap-2 flex-wrap">
-                      <span className="text-xl font-bold text-gray-900">
-                        {formatVND(getCoursePrice(course).finalPrice)}
-                      </span>
-                      {getCoursePrice(course).originalPrice && getCoursePrice(course).discountPercentage > 0 && (
-                        <>
-                          <span className="text-xs line-through text-gray-400">
-                            {formatVND(getCoursePrice(course).originalPrice!)}
-                          </span>
-                          <Badge variant="destructive" className="text-[10px] px-1 py-0 h-4">
-                            -{getCoursePrice(course).discountPercentage}%
-                          </Badge>
-                        </>
-                      )}
-                    </div>
-                  </CardContent>
-
-                  <CardFooter className="p-4 pt-0 border-t-0">
-                    <Button
-                      size="sm"
-                      className="w-full rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm h-9"
+              {hasActiveFilters && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs text-gray-400">Bộ lọc:</span>
+                  {selectedCategory !== "ALL" && (
+                    <Badge
+                      variant="secondary"
+                      className="bg-gray-100 text-gray-700"
                     >
-                      {enrolledCourseIds.has(course._id) ? "Tiếp tục học" : "Xem chi tiết"}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
+                      {
+                        categories?.find((c) => c._id === selectedCategory)
+                          ?.name
+                      }
+                      <X
+                        className="w-3 h-3 ml-1 cursor-pointer hover:text-red-500"
+                        onClick={() => setSelectedCategory("ALL")}
+                      />
+                    </Badge>
+                  )}
+                  {selectedPriceRange !== "ALL" && (
+                    <Badge
+                      variant="secondary"
+                      className="bg-gray-100 text-gray-700"
+                    >
+                      {
+                        priceRanges.find((r) => r.id === selectedPriceRange)
+                          ?.label
+                      }
+                      <X
+                        className="w-3 h-3 ml-1 cursor-pointer hover:text-red-500"
+                        onClick={() => setSelectedPriceRange("ALL")}
+                      />
+                    </Badge>
+                  )}
+                  {priceSort !== "none" && (
+                    <Badge
+                      variant="secondary"
+                      className="bg-gray-100 text-gray-700"
+                    >
+                      {priceSort === "low-high"
+                        ? "Giá tăng dần"
+                        : "Giá giảm dần"}
+                      <X
+                        className="w-3 h-3 ml-1 cursor-pointer hover:text-red-500"
+                        onClick={() => setPriceSort("none")}
+                      />
+                    </Badge>
+                  )}
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="text-center py-20 bg-white rounded-2xl shadow-sm">
-              <div className="text-7xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">Không tìm thấy khóa học nào</h3>
-              <p className="text-gray-500 max-w-md mx-auto mb-6">
-                Vui lòng thử nghiệm lại với các từ khóa tìm kiếm khác
-              </p>
-              <Button
-                variant="outline"
-                className="rounded-full border-gray-200 hover:border-indigo-300 hover:text-indigo-600"
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCategory("ALL");
-                }}
-              >
-                Xóa bộ lọc
-              </Button>
-            </div>
-          )}
+
+            {/* Courses Grid */}
+            {filteredCourses.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredCourses.map((course) => (
+                  <Card
+                    key={course._id}
+                    className="group rounded-xl overflow-hidden p-0 border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white cursor-pointer"
+                    onClick={() =>
+                      router.push(
+                        enrolledCourseIds.has(course._id)
+                          ? `/course/${course._id}/view`
+                          : `/course/${course._id}`,
+                      )
+                    }
+                  >
+                    <div className="relative overflow-hidden h-44">
+                      <img
+                        src={course.thumbnail || "/api/placeholder/400/300"}
+                        alt={course.title}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <div className="absolute top-3 left-3">
+                        <Badge className="bg-black/60 backdrop-blur-sm text-white border-0 text-xs">
+                          {typeof course.categoryId === "object"
+                            ? (course.categoryId as any).name
+                            : categoryMap.get(course.categoryId as string) ||
+                              String(course.categoryId)}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <CardContent className="p-4 space-y-2">
+                      <h3 className="font-semibold text-sm line-clamp-2 text-gray-900 group-hover:text-indigo-600 transition-colors">
+                        {course.title}
+                      </h3>
+
+                      <p className="text-xs text-gray-500 line-clamp-2">
+                        {course.description ||
+                          "Khóa học chất lượng cao với nội dung được cập nhật liên tục"}
+                      </p>
+
+                      <div className="pt-2 flex items-baseline gap-2 flex-wrap">
+                        <span className="text-lg font-bold text-gray-900">
+                          {formatVND(getCoursePrice(course).finalPrice)}
+                        </span>
+                        {getCoursePrice(course).originalPrice &&
+                          getCoursePrice(course).discountPercentage > 0 && (
+                            <>
+                              <span className="text-xs line-through text-gray-400">
+                                {formatVND(
+                                  getCoursePrice(course).originalPrice!,
+                                )}
+                              </span>
+                              <Badge
+                                variant="destructive"
+                                className="text-[10px] px-1 py-0 h-4"
+                              >
+                                -{getCoursePrice(course).discountPercentage}%
+                              </Badge>
+                            </>
+                          )}
+                      </div>
+                    </CardContent>
+
+                    <CardFooter className="p-4 pt-0 border-t-0">
+                      <Button
+                        size="sm"
+                        className="w-full rounded-lg bg-gray-900 hover:bg-indigo-600 text-white text-sm h-9 transition-colors"
+                      >
+                        {enrolledCourseIds.has(course._id)
+                          ? "Tiếp tục học"
+                          : "Xem chi tiết"}
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 bg-white rounded-2xl shadow-sm">
+                <div className="text-7xl mb-4">🔍</div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  Không tìm thấy khóa học nào
+                </h3>
+                <p className="text-gray-500 max-w-md mx-auto mb-6">
+                  Vui lòng thử nghiệm lại với các từ khóa tìm kiếm khác
+                </p>
+                <Button
+                  variant="outline"
+                  className="rounded-full border-gray-200 hover:border-indigo-300 hover:text-indigo-600"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedCategory("ALL");
+                    setSelectedPriceRange("ALL");
+                    setPriceSort("none");
+                  }}
+                >
+                  Xóa bộ lọc
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
