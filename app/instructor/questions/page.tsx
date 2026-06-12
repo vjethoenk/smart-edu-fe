@@ -56,7 +56,7 @@ export default function InstructorQuestions() {
   const { data } = useGetQuestions(currentPage - 1);
   const questionItems_ = data?.data?.data ? [...data.data.data] : [];
   const questionItems = questionItems_.filter(
-    (q) => q.createBy.email === user.email,
+    (q) => q.createBy?.email === user?.email,
   );
 
   const handleBrowseQuestion = (id: string) => {

@@ -13,6 +13,8 @@ export interface UpdateUserRequest {
   email?: string;
   password?: string;
   role?: string;
+  phone?: string;
+  address?: string;
 }
 
 export interface UserResponse {
