@@ -13,3 +13,8 @@ export const verifyCertificateApi = (code: string) => {
     `/v1/certificates/verify/${code}`,
   );
 };
+
+export const getMyCertificatesApi = () => {
+  return axiosClient.get<any, ApiResponse<ICertificate[]>>(`/v1/certificates/me`);
+};
+

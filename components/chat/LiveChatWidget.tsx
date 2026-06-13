@@ -39,7 +39,10 @@ export default function LiveChatWidget() {
   const [status, setStatus] = useState("disconnected");
   const [socket, setSocket] = useState<Socket | null>(null);
   const [typingIndicator, setTypingIndicator] = useState<string | null>(null);
-  const [adminUser, setAdminUser] = useState<{ _id: string; name: string } | null>(null);
+  const [adminUser, setAdminUser] = useState<{
+    _id: string;
+    name: string;
+  } | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -78,7 +81,7 @@ export default function LiveChatWidget() {
           const foundAdmin = users.find(
             (u: any) =>
               u.email?.toLowerCase().includes("admin") ||
-              u.name?.toLowerCase().includes("admin")
+              u.name?.toLowerCase().includes("admin"),
           );
 
           if (foundAdmin) {
@@ -110,7 +113,7 @@ export default function LiveChatWidget() {
       receiverId,
       1,
       50,
-      isOpen && isLoggedIn && !!courseId && !!receiverId
+      isOpen && isLoggedIn && !!courseId && !!receiverId,
     );
 
   // Cập nhật tin nhắn lịch sử
@@ -138,7 +141,10 @@ export default function LiveChatWidget() {
       return;
     }
 
-    const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("access_token")
+        : null;
     const socketClient = io(CHAT_NAMESPACE, {
       auth: { token },
       reconnection: true,
@@ -248,7 +254,7 @@ export default function LiveChatWidget() {
           "w-[360px] sm:w-[380px] h-[500px] bg-white rounded-3xl shadow-2xl border border-slate-100 flex flex-col overflow-hidden transition-all duration-300 transform origin-bottom-right mb-4",
           isOpen
             ? "scale-100 opacity-100 pointer-events-auto"
-            : "scale-90 opacity-0 pointer-events-none absolute bottom-0 right-0 h-0 w-0"
+            : "scale-90 opacity-0 pointer-events-none absolute bottom-0 right-0 h-0 w-0",
         )}
       >
         {/* Header Chat Box */}
@@ -267,7 +273,14 @@ export default function LiveChatWidget() {
             <div>
               <h4 className="font-bold text-sm">Hỗ trợ SmartEdu</h4>
               <p className="text-[10px] text-white/70 flex items-center gap-1 mt-0.5">
-                <CircleDot className={cn("w-2 h-2", status === "connected" ? "text-emerald-400" : "text-slate-400")} />
+                <CircleDot
+                  className={cn(
+                    "w-2 h-2",
+                    status === "connected"
+                      ? "text-emerald-400"
+                      : "text-slate-400",
+                  )}
+                />
                 {status === "connected" ? "Trực tuyến" : "Ngoại tuyến"}
               </p>
             </div>
@@ -297,7 +310,8 @@ export default function LiveChatWidget() {
               </div>
               <h5 className="font-bold text-slate-800">Yêu cầu đăng nhập</h5>
               <p className="text-xs text-slate-500 max-w-[240px]">
-                Vui lòng đăng nhập tài khoản học viên để bắt đầu trò chuyện trực tuyến với đội ngũ hỗ trợ.
+                Vui lòng đăng nhập tài khoản học viên để bắt đầu trò chuyện trực
+                tuyến với đội ngũ hỗ trợ.
               </p>
               <Link
                 href="/login"
@@ -329,14 +343,16 @@ export default function LiveChatWidget() {
                     "flex flex-col max-w-[80%] rounded-2xl px-3.5 py-2 shadow-sm text-xs leading-5",
                     isMine
                       ? "ml-auto bg-indigo-600 text-white rounded-br-none"
-                      : "mr-auto bg-white text-slate-800 border border-slate-200/60 rounded-bl-none"
+                      : "mr-auto bg-white text-slate-800 border border-slate-200/60 rounded-bl-none",
                   )}
                 >
-                  <p className="whitespace-pre-wrap break-words">{message.message}</p>
+                  <p className="whitespace-pre-wrap break-words">
+                    {message.message}
+                  </p>
                   <span
                     className={cn(
                       "text-[9px] text-right mt-1 font-medium",
-                      isMine ? "text-white/60" : "text-slate-400"
+                      isMine ? "text-white/60" : "text-slate-400",
                     )}
                   >
                     {new Date(message.createdAt).toLocaleTimeString([], {
@@ -391,7 +407,11 @@ export default function LiveChatWidget() {
         className="w-14 h-14 rounded-full bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 hover:from-indigo-700 hover:to-purple-800 text-white flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 relative"
       >
         <div className="absolute inset-0 bg-indigo-600 rounded-full blur opacity-40 animate-ping -z-10" />
-        {isOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6 animate-pulse" />}
+        {isOpen ? (
+          <X className="w-6 h-6" />
+        ) : (
+          <MessageCircle className="w-6 h-6 animate-pulse" />
+        )}
       </button>
     </div>
   );

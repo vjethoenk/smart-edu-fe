@@ -212,7 +212,7 @@ export default function LessonPreview({
                   ) : (
                     <>
                       <Award className="w-4 h-4 mr-2 animate-pulse" />
-                      🎓 Nhận chứng chỉ hoàn thành
+                      Nhận chứng chỉ hoàn thành
                     </>
                   )}
                 </Button>

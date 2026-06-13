@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { getCertificateByCourseApi, verifyCertificateApi } from "./api";
+import { getCertificateByCourseApi, verifyCertificateApi, getMyCertificatesApi } from "./api";
+
 
 export const useGetCertificateByCourse = (courseId: string, enabled = false) => {
   return useQuery({
@@ -23,3 +24,12 @@ export const useVerifyCertificate = (code: string) => {
     retry: false,
   });
 };
+
+export const useGetMyCertificates = () => {
+  return useQuery({
+    queryKey: ["certificates", "me"],
+    queryFn: () => getMyCertificatesApi(),
+    select: (res) => res.data,
+  });
+};
+

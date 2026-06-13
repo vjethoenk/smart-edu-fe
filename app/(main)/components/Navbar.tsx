@@ -34,8 +34,12 @@ function UserMenu() {
             Tài khoản
           </Link>
 
-          <Link href="/my-courses" className="px-4 py-2 hover:bg-gray-100">
+          <Link href="/enrollments" className="px-4 py-2 hover:bg-gray-100">
             Khóa học của tôi
+          </Link>
+
+          <Link href="/my-certificates" className="px-4 py-2 hover:bg-gray-100">
+            Chứng chỉ của tôi
           </Link>
 
           {role === "ADMIN" && (
