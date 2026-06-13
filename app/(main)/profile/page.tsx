@@ -5,8 +5,7 @@ import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useAppDispatch } from "@/store/hook";
 import { setAuth } from "@/features/auth/slice";
-import { accountApi } from "@/features/auth/api";
-import { useUpdateUser } from "@/features/user/hook";
+import { useGetUserById, useUpdateUser } from "@/features/user/hook";
 import { RootState } from "@/store/type";
 import {
   Card,
@@ -46,8 +45,10 @@ export default function ProfilePage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
+  const { data: detailUser, refetch } = useGetUserById(user?._id || "");
   const updateUser = useUpdateUser();
 
+  console.log("User data from Redux:", user);
   // State thông tin cá nhân
   const [formData, setFormData] = useState({
     name: "",
@@ -77,19 +78,20 @@ export default function ProfilePage() {
       return;
     }
 
-    if (user) {
+    const activeUser = detailUser || user;
+    if (activeUser) {
       const userData = {
-        name: user.name || "",
-        email: user.email || "",
-        phone: user.phone || "",
-        address: user.address || "",
+        name: activeUser.name || "",
+        email: activeUser.email || "",
+        phone: activeUser.phone || "",
+        address: activeUser.address || "",
       };
       /* eslint-disable react-hooks/set-state-in-effect */
       setFormData(userData);
       setOriginalData(userData);
       /* eslint-enable react-hooks/set-state-in-effect */
     }
-  }, [user, router]);
+  }, [user, detailUser, router]);
 
   const passwordStrength = (() => {
     if (!password) return 0;
@@ -146,6 +148,7 @@ export default function ProfilePage() {
       });
 
       const updatedUser = response.data;
+      refetch();
 
       dispatch(
         setAuth({
@@ -213,11 +216,30 @@ export default function ProfilePage() {
     }
   };
 
-  const userRole = (user.role?.name || "USER") as keyof typeof roleColors;
+  const activeUser = detailUser || user;
+  const userRole = (activeUser?.role?.name ||
+    "USER") as keyof typeof roleColors;
   const roleColors = {
     ADMIN: "bg-gradient-to-r from-red-500 to-rose-500",
     INSTRUCTOR: "bg-gradient-to-r from-amber-500 to-orange-500",
     USER: "bg-gradient-to-r from-indigo-500 to-purple-500",
+  };
+
+  // Get avatar initial from active user (API data)
+  const displayName = activeUser?.name || "U";
+  const initials = displayName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  // Display data helpers
+  const getDisplayValue = (field: "name" | "email" | "phone" | "address") => {
+    if (isEditing) {
+      return formData[field];
+    }
+    return activeUser?.[field] || "";
   };
 
   return (
@@ -244,9 +266,7 @@ export default function ProfilePage() {
                 />
                 <Avatar className="h-28 w-28 rounded-2xl ring-4 ring-white shadow-xl">
                   <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-3xl font-bold text-white">
-                    {formData.name
-                      ? formData.name.charAt(0).toUpperCase()
-                      : "U"}
+                    {initials}
                   </AvatarFallback>
                 </Avatar>
                 <button className="absolute bottom-0 right-0 rounded-full bg-white p-1.5 shadow-lg hover:bg-slate-50 transition-all">
@@ -259,11 +279,11 @@ export default function ProfilePage() {
                 <div className="flex flex-col items-center gap-3 md:flex-row md:items-start">
                   <div>
                     <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
-                      {formData.name}
+                      {getDisplayValue("name")}
                     </h1>
                     <p className="text-slate-500 text-sm mt-1 flex items-center gap-2 justify-center md:justify-start">
                       <Mail className="h-4 w-4" />
-                      {user.email}
+                      {getDisplayValue("email")}
                     </p>
                   </div>
                   <Badge
@@ -348,14 +368,19 @@ export default function ProfilePage() {
                           <User className="h-4 w-4 text-indigo-500" />
                           Họ và tên
                         </Label>
-                        <Input
-                          id="profile-name"
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                          className="h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 transition-all"
-                          placeholder="Nhập họ và tên"
-                        />
+                        {!isEditing ? (
+                          <div className="h-12 rounded-xl border border-slate-200 bg-slate-50 flex items-center px-4 text-slate-700">
+                            {getDisplayValue("name") || "--"}
+                          </div>
+                        ) : (
+                          <Input
+                            id="profile-name"
+                            value={formData.name}
+                            onChange={handleInputChange}
+                            className="h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 transition-all"
+                            placeholder="Nhập họ và tên"
+                          />
+                        )}
                       </div>
 
                       {/* Email */}
@@ -364,15 +389,20 @@ export default function ProfilePage() {
                           <Mail className="h-4 w-4 text-indigo-500" />
                           Email
                         </Label>
-                        <Input
-                          id="profile-email"
-                          type="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                          className="h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 transition-all"
-                          placeholder="example@email.com"
-                        />
+                        {!isEditing ? (
+                          <div className="h-12 rounded-xl border border-slate-200 bg-slate-50 flex items-center px-4 text-slate-700">
+                            {getDisplayValue("email") || "--"}
+                          </div>
+                        ) : (
+                          <Input
+                            id="profile-email"
+                            type="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            className="h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 transition-all"
+                            placeholder="example@email.com"
+                          />
+                        )}
                       </div>
 
                       {/* Số điện thoại */}
@@ -381,14 +411,19 @@ export default function ProfilePage() {
                           <Phone className="h-4 w-4 text-indigo-500" />
                           Số điện thoại
                         </Label>
-                        <Input
-                          id="profile-phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                          className="h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 transition-all"
-                          placeholder="Nhập số điện thoại"
-                        />
+                        {!isEditing ? (
+                          <div className="h-12 rounded-xl border border-slate-200 bg-slate-50 flex items-center px-4 text-slate-700">
+                            {getDisplayValue("phone") || "--"}
+                          </div>
+                        ) : (
+                          <Input
+                            id="profile-phone"
+                            value={formData.phone}
+                            onChange={handleInputChange}
+                            className="h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 transition-all"
+                            placeholder="Nhập số điện thoại"
+                          />
+                        )}
                       </div>
 
                       {/* Địa chỉ */}
@@ -397,14 +432,19 @@ export default function ProfilePage() {
                           <MapPin className="h-4 w-4 text-indigo-500" />
                           Địa chỉ
                         </Label>
-                        <Input
-                          id="profile-address"
-                          value={formData.address}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                          className="h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 transition-all"
-                          placeholder="Nhập địa chỉ"
-                        />
+                        {!isEditing ? (
+                          <div className="h-12 rounded-xl border border-slate-200 bg-slate-50 flex items-center px-4 text-slate-700">
+                            {getDisplayValue("address") || "--"}
+                          </div>
+                        ) : (
+                          <Input
+                            id="profile-address"
+                            value={formData.address}
+                            onChange={handleInputChange}
+                            className="h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 transition-all"
+                            placeholder="Nhập địa chỉ"
+                          />
+                        )}
                       </div>
                     </div>
 

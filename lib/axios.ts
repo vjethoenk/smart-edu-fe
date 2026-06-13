@@ -37,10 +37,8 @@ instance.interceptors.response.use(
     // Handle 401 (Unauthorized) - token expired or invalid
     if (error?.response?.status === 401) {
       clearAuthData();
-      // Redirect to home page
-      if (typeof window !== "undefined") {
-        window.location.href = "/";
-      }
+      // Don't use window.location.href as it causes hard reload and logout on F5
+      // Let the app handle navigation naturally or use router.push()
     }
 
     // Any status codes that falls outside the range of 2xx cause this function to trigger

@@ -1,5 +1,11 @@
 "use client";
 
+import Link from "next/link";
+import { useState } from "react";
+import { useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
+import { useLogout } from "@/features/auth/hook";
+import { RootState } from "@/store/type";
 import {
   Bell,
   Search,
@@ -10,11 +16,22 @@ import {
   Moon,
   Sun,
 } from "lucide-react";
-import { useState } from "react";
 
 export default function HeaderAdmin() {
+  const logout = useLogout();
+  const router = useRouter();
+  const { user, role } = useSelector((state: RootState) => state.auth);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
+
+  const userName = user?.name || "Administrator";
+  const userEmail = user?.email || "admin@smartedu.com";
+  const initial = userName.charAt(0).toUpperCase();
 
   return (
     <header className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 px-6 py-3 flex items-center justify-between sticky top-0 z-30 shadow-sm h-[80px]">
@@ -96,43 +113,38 @@ export default function HeaderAdmin() {
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full blur-md opacity-60" />
               <div className="relative w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold shadow-lg">
-                A
+                {initial}
               </div>
               <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
             </div>
 
             <div className="hidden sm:block">
-              <p className="text-sm font-semibold text-gray-800">
-                Nguyễn Văn A
-              </p>
-              <p className="text-xs text-gray-500">Administrator</p>
+              <p className="text-sm font-semibold text-gray-800">{userName}</p>
+              <p className="text-xs text-gray-500">{role || "Administrator"}</p>
             </div>
           </div>
 
           {/* Dropdown menu */}
           <div className="absolute right-0 mt-3 w-64 bg-white rounded-xl shadow-xl opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-all duration-200 border border-gray-100 overflow-hidden">
             <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-purple-50">
-              <p className="text-sm font-semibold text-gray-800">
-                Nguyễn Văn A
-              </p>
-              <p className="text-xs text-gray-500 mt-1">admin@smartedu.com</p>
+              <p className="text-sm font-semibold text-gray-800">{userName}</p>
+              <p className="text-xs text-gray-500 mt-1">{userEmail}</p>
             </div>
             <div className="py-2">
-              <button className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-3">
+              <Link
+                href="/admin/profile"
+                className="w-full block px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-3"
+              >
                 <User className="w-4 h-4" />
                 Hồ sơ cá nhân
-              </button>
-              <button className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-3">
-                <Settings className="w-4 h-4" />
-                Cài đặt tài khoản
-              </button>
-              <button className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-3">
-                <HelpCircle className="w-4 h-4" />
-                Trợ giúp
-              </button>
+              </Link>
             </div>
             <div className="border-t border-gray-100 py-2">
-              <button className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-3"
+              >
                 <LogOut className="w-4 h-4" />
                 Đăng xuất
               </button>

@@ -12,13 +12,19 @@ export function middleware(request: NextRequest) {
   const tokenExpired = !isTokenValid(accessToken);
 
   if (pathname.startsWith("/admin")) {
-    // If no token or token expired, redirect to home
-    if (!accessToken || tokenExpired) {
+    // If token exists and is expired, redirect to home
+    if (accessToken && tokenExpired) {
       const response = NextResponse.redirect(new URL("/", request.url));
       // Clear expired token from cookies
       response.cookies.delete("access_token");
       response.cookies.delete("role");
       return response;
+    }
+
+    // If no token in cookies, allow request to continue
+    // Client-side AuthInitializer will handle token from localStorage
+    if (!accessToken) {
+      return NextResponse.next();
     }
 
     // Allow ADMIN and INSTRUCTOR to access /admin
@@ -43,13 +49,17 @@ export function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith("/instructor")) {
-    // If no token or token expired, redirect to home
-    if (!accessToken || tokenExpired) {
+    // If token exists and is expired, redirect to home
+    if (accessToken && tokenExpired) {
       const response = NextResponse.redirect(new URL("/", request.url));
-      // Clear expired token from cookies
       response.cookies.delete("access_token");
       response.cookies.delete("role");
       return response;
+    }
+
+    // If no token in cookies, allow request to continue
+    if (!accessToken) {
+      return NextResponse.next();
     }
 
     if (role !== "INSTRUCTOR") {
