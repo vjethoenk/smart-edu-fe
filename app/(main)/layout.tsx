@@ -1,4 +1,5 @@
 import Navbar from "./components/Navbar";
+import LiveChatWidget from "@/components/chat/LiveChatWidget";
 
 export default function MainLayout({
   children,
@@ -9,6 +10,7 @@ export default function MainLayout({
     <div>
       <Navbar />
       {children}
+      <LiveChatWidget />
     </div>
   );
 }

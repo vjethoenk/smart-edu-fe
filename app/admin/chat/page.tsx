@@ -2,17 +2,18 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
-import { Bell, CircleDot, Send, Wifi, WifiOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+  Bell,
+  CircleDot,
+  Send,
+  Wifi,
+  WifiOff,
+  MessageSquare,
+  Loader2,
+  User,
+  Search,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
   useGetChatConversations,
@@ -43,6 +44,17 @@ function getUserId(value: unknown): string {
   return "";
 }
 
+function getConversationCourseId(
+  conversation: ChatConversationSummary | null,
+): string {
+  if (!conversation) return "";
+  const id = conversation._id;
+  if (typeof id === "object" && id !== null && "courseId" in id) {
+    return String((id as any).courseId);
+  }
+  return "";
+}
+
 export default function AdminChatPage() {
   const [courseId, setCourseId] = useState<string>("");
   const [receiverId, setReceiverId] = useState<string>("");
@@ -53,24 +65,28 @@ export default function AdminChatPage() {
   const [status, setStatus] = useState<string>("disconnected");
   const [typingIndicator, setTypingIndicator] = useState<string | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     data: conversationsResponse,
     isFetching: conversationsLoading,
     refetch: refetchConversations,
-  } = useGetChatConversations(courseId, !!courseId);
+  } = useGetChatConversations(undefined, true);
 
+  // Tải lịch sử tin nhắn của cuộc trò chuyện được chọn
   const {
     data: conversationResponse,
     isFetching: conversationLoading,
     refetch: refetchConversation,
   } = useGetConversation(
-    courseId,
+    courseId || undefined,
     selectedConversation?.otherUser._id ?? receiverId,
     1,
     50,
-    !!courseId && !!(selectedConversation?.otherUser._id ?? receiverId),
+    !!(selectedConversation?.otherUser._id ?? receiverId) && !!courseId,
   );
 
   const conversations = useMemo(
@@ -78,7 +94,19 @@ export default function AdminChatPage() {
     [conversationsResponse],
   );
 
+  // Lọc cuộc trò chuyện theo thanh tìm kiếm học viên
+  const filteredConversations = useMemo(() => {
+    return conversations.filter(
+      (c) =>
+        c.otherUser.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.otherUser.email.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [conversations, searchQuery]);
+
+  // Thiết lập socket connection
   useEffect(() => {
+    if (!receiverId) return;
+
     const token =
       typeof window !== "undefined"
         ? localStorage.getItem("access_token")
@@ -95,6 +123,9 @@ export default function AdminChatPage() {
 
     socketClient.on("connect", () => {
       setStatus("connected");
+      if (courseId) {
+        socketClient.emit("joinCourse", { courseId });
+      }
     });
 
     socketClient.on("disconnect", () => {
@@ -107,6 +138,9 @@ export default function AdminChatPage() {
 
     socketClient.on("connection_success", () => {
       setStatus("connected");
+      if (courseId) {
+        socketClient.emit("joinCourse", { courseId });
+      }
     });
 
     socketClient.on("newMessage", (message: ChatMessage) => {
@@ -135,12 +169,21 @@ export default function AdminChatPage() {
       refetchConversations();
     });
 
-    socketClient.on("userTyping", (data: { email?: string }) => {
-      setTypingIndicator(data?.email ? `${data.email} đang gõ...` : null);
-    });
+    socketClient.on(
+      "userTyping",
+      (data: { email?: string; userId?: string }) => {
+        if (data.userId === receiverId) {
+          setTypingIndicator(
+            data?.email ? `${data.email} đang soạn tin...` : "Đang soạn tin...",
+          );
+        }
+      },
+    );
 
-    socketClient.on("userStopTyping", () => {
-      setTypingIndicator(null);
+    socketClient.on("userStopTyping", (data: { userId?: string }) => {
+      if (data.userId === receiverId) {
+        setTypingIndicator(null);
+      }
     });
 
     return () => {
@@ -149,26 +192,31 @@ export default function AdminChatPage() {
         clearTimeout(typingTimeoutRef.current);
       }
     };
-  }, [receiverId, selectedConversation, refetchConversations]);
+  }, [receiverId, courseId, selectedConversation, refetchConversations]);
 
   useEffect(() => {
     if (!conversationResponse?.data) return;
     setMessages(conversationResponse.data.data);
   }, [conversationResponse]);
 
+  // Tự động join khi courseId thay đổi
   useEffect(() => {
     if (!socket || !courseId) return;
     socket.emit("joinCourse", { courseId });
   }, [socket, courseId]);
 
+  // Cuộn xuống tin nhắn mới nhất
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, typingIndicator]);
+
   const handleSelectConversation = (conversation: ChatConversationSummary) => {
     setSelectedConversation(conversation);
     setReceiverId(conversation.otherUser._id);
-    if (conversation.otherUser._id) {
-      setTimeout(() => {
-        refetchConversation();
-      }, 0);
-    }
+
+    // Tự động trích xuất courseId từ conversation
+    const cId = getConversationCourseId(conversation);
+    setCourseId(cId);
   };
 
   const emitTyping = () => {
@@ -182,8 +230,10 @@ export default function AdminChatPage() {
     }, 1000);
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!socket || !courseId || !receiverId || !messageText.trim()) return;
+
     socket.emit("sendMessage", {
       courseId,
       receiverId,
@@ -191,252 +241,269 @@ export default function AdminChatPage() {
       messageType: "text",
     });
     setMessageText("");
-  };
-
-  const handleLeaveCourse = () => {
-    if (!socket || !courseId) return;
-    socket.emit("leaveCourse", { courseId });
-    setStatus("disconnected");
-    setMessages([]);
-    setSelectedConversation(null);
-    setReceiverId("");
-    setTypingIndicator(null);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      socket.emit("stopTyping", { courseId, receiverId });
+    }
   };
 
   return (
-    <div className="p-6">
-      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="p-6 max-w-8xl mx-auto space-y-6 h-[calc(100vh-100px)] flex flex-col">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
         <div>
-          <h1 className="text-3xl font-semibold">Chat Admin</h1>
+          <h1 className="text-3xl font-extrabold text-slate-900 flex items-center gap-2">
+            <MessageSquare className="w-8 h-8 text-indigo-600" />
+            Hỗ trợ Học viên
+          </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Kết nối và quản lý chat realtime giữa học viên và giảng viên.
+            Hộp thư hỗ trợ trực tuyến kết nối thời gian thực giữa Admin và Học
+            viên.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <span
-            className={cn(
-              "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium",
-              status === "connected"
-                ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+        <div className="flex items-center gap-2">
+          {selectedConversation && (
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1 text-xs font-semibold shadow-sm",
+                status === "connected"
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                  : status === "error"
+                    ? "border-rose-200 bg-rose-50 text-rose-700"
+                    : "border-slate-200 bg-slate-50 text-slate-600",
+              )}
+            >
+              <CircleDot
+                className={cn(
+                  "w-2 h-2",
+                  status === "connected"
+                    ? "bg-emerald-500 animate-pulse rounded-full"
+                    : "bg-slate-400 rounded-full",
+                )}
+              />
+              {status === "connected"
+                ? "Đã kết nối Socket"
                 : status === "error"
-                  ? "border-rose-300 bg-rose-50 text-rose-700"
-                  : "border-slate-300 bg-slate-50 text-slate-700",
-            )}
-          >
-            {status === "connected" ? (
-              <Wifi className="h-4 w-4" />
-            ) : (
-              <WifiOff className="h-4 w-4" />
-            )}
-            {status === "connected"
-              ? "Đã kết nối"
-              : status === "error"
-                ? "Lỗi kết nối"
-                : "Chưa kết nối"}
-          </span>
-          <span className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-sm text-slate-700">
-            <Bell className="h-4 w-4" />
-            {conversations.length} cuộc trò chuyện
+                  ? "Lỗi kết nối Socket"
+                  : "Chưa kết nối"}
+            </span>
+          )}
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3.5 py-1 text-xs font-semibold text-slate-600 shadow-sm">
+            <Bell className="h-3.5 w-3.5 text-indigo-500" />
+            {conversations.length} cuộc hội thoại
           </span>
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
-        <Card className="space-y-4">
-          <CardHeader>
-            <CardTitle>Thông tin kết nối</CardTitle>
-            <CardDescription>
-              Nhập courseId và chọn người nhận để bắt đầu chat realtime.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">
-                Course ID
-              </label>
-              <Input
-                value={courseId}
-                onChange={(event) => setCourseId(event.target.value)}
-                placeholder="Nhập courseId"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">
-                Receiver ID
-              </label>
-              <Input
-                value={receiverId}
-                onChange={(event) => setReceiverId(event.target.value)}
-                placeholder="Nhập receiverId hoặc chọn cuộc trò chuyện"
-              />
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  if (socket && courseId) {
-                    socket.emit("joinCourse", { courseId });
-                    refetchConversations();
-                  }
-                }}
-              >
-                Vào khóa học
-              </Button>
-              <Button variant="ghost" onClick={handleLeaveCourse}>
-                Rời khóa học
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Main Chat Container */}
+      <div className="flex-1 min-h-0 bg-white rounded-3xl border border-slate-100 shadow-lg flex overflow-hidden">
+        {/* Cột trái: Danh sách cuộc trò chuyện */}
+        <div className="w-full lg:w-[360px] border-r border-slate-100 flex flex-col shrink-0">
+          {/* Search bar */}
+          <div className="p-4 border-b border-slate-50 relative shrink-0">
+            <Search className="absolute left-7 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm học viên..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-slate-400"
+            />
+          </div>
 
-        <Card className="h-fit overflow-hidden">
-          <CardHeader>
-            <CardTitle>Cuộc trò chuyện</CardTitle>
-            <CardDescription>
-              Chọn một cuộc trò chuyện để tải lịch sử, hoặc nhập Receiver ID để
-              nhắn tin trực tiếp.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
+          {/* Conversations List */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
             {conversationsLoading ? (
-              <div className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-slate-500">
-                Đang tải danh sách cuộc trò chuyện...
+              <div className="flex flex-col items-center justify-center py-12 gap-2 text-slate-400">
+                <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+                <span className="text-xs">Đang tải danh sách...</span>
               </div>
-            ) : conversations.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-slate-500">
-                Chưa có cuộc trò chuyện nào. Hãy nhập Course ID và join trước.
+            ) : filteredConversations.length === 0 ? (
+              <div className="text-center py-12 text-slate-400 text-xs font-medium">
+                {searchQuery
+                  ? "Không tìm thấy học viên nào"
+                  : "Chưa có cuộc trò chuyện hỗ trợ nào"}
               </div>
             ) : (
-              <div className="space-y-2">
-                {conversations.map((conversation) => (
+              filteredConversations.map((conversation) => {
+                const isActive =
+                  selectedConversation?.otherUser._id ===
+                  conversation.otherUser._id;
+                return (
                   <button
                     key={conversation.otherUser._id}
                     type="button"
                     onClick={() => handleSelectConversation(conversation)}
                     className={cn(
-                      "w-full rounded-2xl border px-4 py-3 text-left transition hover:border-slate-400",
-                      selectedConversation?.otherUser._id ===
-                        conversation.otherUser._id
-                        ? "border-indigo-500 bg-indigo-50"
-                        : "border-slate-200 bg-white",
+                      "w-full rounded-2xl p-3.5 text-left transition-all duration-200 border flex items-center gap-3",
+                      isActive
+                        ? "border-indigo-500 bg-indigo-50/70 shadow-sm"
+                        : "border-transparent bg-white hover:bg-slate-50",
                     )}
                   >
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="font-medium text-slate-900">
-                          {conversation.otherUser.name}
-                        </p>
-                        <p className="text-sm text-slate-500 truncate">
-                          {conversation.lastMessage}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-slate-400">
-                          {formatDate(conversation.lastMessageTime)}
-                        </p>
-                        {conversation.unreadCount > 0 && (
-                          <span className="mt-2 inline-flex items-center rounded-full bg-rose-100 px-2.5 py-0.5 text-[11px] font-semibold text-rose-700">
-                            {conversation.unreadCount} mới
-                          </span>
+                    <div className="relative shrink-0">
+                      <div
+                        className={cn(
+                          "w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm",
+                          isActive
+                            ? "bg-indigo-600 text-white"
+                            : "bg-slate-100 text-slate-600",
+                        )}
+                      >
+                        {conversation.otherUser.name ? (
+                          conversation.otherUser.name.charAt(0)
+                        ) : (
+                          <User className="w-4 h-4" />
                         )}
                       </div>
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-baseline gap-2">
+                        <p className="font-semibold text-xs text-slate-800 truncate">
+                          {conversation.otherUser.name}
+                        </p>
+                        <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
+                          {
+                            formatDate(conversation.lastMessageTime).split(
+                              " ",
+                            )[0]
+                          }
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                        {conversation.lastMessage}
+                      </p>
+                    </div>
+                    {conversation.unreadCount > 0 && (
+                      <span className="shrink-0 w-5 h-5 rounded-full bg-rose-500 text-white font-bold text-[10px] flex items-center justify-center animate-pulse">
+                        {conversation.unreadCount}
+                      </span>
+                    )}
                   </button>
-                ))}
-              </div>
+                );
+              })
             )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="mt-4 min-h-[520px] overflow-hidden">
-        <CardHeader>
-          <CardTitle>Trò chuyện</CardTitle>
-          <CardDescription>
-            {selectedConversation
-              ? `Đang nói chuyện với ${selectedConversation.otherUser.name}`
-              : receiverId
-                ? `Nhắn tin tới ${receiverId}`
-                : "Chưa có cuộc trò chuyện được chọn"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex h-[560px] flex-col gap-3 overflow-hidden p-0">
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50">
-            {conversationLoading && (
-              <div className="rounded-3xl border border-dashed border-slate-200 bg-white/80 p-6 text-center text-slate-500">
-                Đang tải lịch sử tin nhắn...
-              </div>
-            )}
-
-            {!conversationLoading && messages.length === 0 && (
-              <div className="rounded-3xl border border-dashed border-slate-200 bg-white/80 p-6 text-center text-slate-500">
-                Không có tin nhắn lịch sử. Gửi tin nhắn đầu tiên để bắt đầu.
-              </div>
-            )}
-
-            {messages.map((message) => {
-              const isMine =
-                getUserId(message.senderId) === receiverId
-                  ? false
-                  : !selectedConversation
-                    ? false
-                    : getUserId(message.senderId) !== receiverId;
-              return (
-                <div
-                  key={message._id}
-                  className={cn(
-                    "flex flex-col gap-2 rounded-3xl px-4 py-3 shadow-sm",
-                    isMine
-                      ? "ml-auto max-w-[80%] bg-indigo-600 text-white"
-                      : "mr-auto max-w-[80%] bg-white text-slate-900 border border-slate-200",
-                  )}
-                >
-                  <div className="flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.15em] text-slate-400">
-                    <span>
-                      {isMine
-                        ? "Bạn"
-                        : typeof message.senderId === "object"
-                          ? message.senderId?.name
-                          : "Người kia"}
-                    </span>
-                    <span>{formatDate(message.createdAt)}</span>
-                  </div>
-                  <p className="whitespace-pre-wrap break-words text-sm leading-6">
-                    {message.message}
-                  </p>
-                </div>
-              );
-            })}
           </div>
+        </div>
 
-          <CardFooter className="flex flex-col gap-3 border-t px-4 py-4 bg-white">
-            {typingIndicator && (
-              <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2 text-sm text-slate-600">
-                <CircleDot className="h-3 w-3 text-emerald-500" />
-                {typingIndicator}
+        {/* Cột phải: Vùng Trò chuyện */}
+        <div className="flex-1 flex flex-col min-w-0 bg-slate-50/30">
+          {selectedConversation ? (
+            <>
+              {/* Header Khung Chat */}
+              <div className="px-6 py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0 shadow-sm z-10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm shadow-sm border border-indigo-100">
+                    {selectedConversation.otherUser.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-slate-800">
+                      {selectedConversation.otherUser.name}
+                    </h4>
+                    <p className="text-[10px] text-slate-400 mt-0.5 font-medium">
+                      Email: {selectedConversation.otherUser.email}
+                    </p>
+                  </div>
+                </div>
               </div>
-            )}
-            <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-              <Textarea
-                value={messageText}
-                onChange={(event) => {
-                  setMessageText(event.target.value);
-                  emitTyping();
-                }}
-                placeholder="Gõ tin nhắn..."
-                rows={3}
-              />
-              <Button
-                className="h-14 w-full sm:w-auto"
-                onClick={handleSendMessage}
-                disabled={!messageText.trim() || !courseId || !receiverId}
+
+              {/* Danh sách tin nhắn */}
+              <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4 custom-scrollbar">
+                {conversationLoading && messages.length === 0 ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+                  </div>
+                ) : (
+                  messages.map((message) => {
+                    const isMine =
+                      getUserId(message.senderId) !==
+                      selectedConversation.otherUser._id;
+                    return (
+                      <div
+                        key={message._id}
+                        className={cn(
+                          "flex flex-col max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm text-xs leading-5 transition-all",
+                          isMine
+                            ? "ml-auto bg-indigo-600 text-white rounded-br-none"
+                            : "mr-auto bg-white text-slate-800 border border-slate-200/50 rounded-bl-none",
+                        )}
+                      >
+                        <p className="whitespace-pre-wrap break-words">
+                          {message.message}
+                        </p>
+                        <span
+                          className={cn(
+                            "text-[9px] text-right mt-1.5 font-medium",
+                            isMine ? "text-white/60" : "text-slate-400",
+                          )}
+                        >
+                          {new Date(message.createdAt).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
+                {typingIndicator && (
+                  <div className="flex items-center gap-2 text-[10px] text-slate-400 font-semibold mr-auto bg-white border border-slate-100 rounded-full px-4.5 py-2 shadow-sm animate-pulse">
+                    <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" />
+                    <span>{typingIndicator}</span>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Ô soạn thảo và gửi */}
+              <form
+                onSubmit={handleSendMessage}
+                className="p-4 bg-white border-t border-slate-100 flex items-end gap-3 shrink-0"
               >
-                <Send className="mr-2 h-4 w-4" /> Gửi
-              </Button>
+                <div className="flex-1">
+                  <Textarea
+                    value={messageText}
+                    onChange={(event) => {
+                      setMessageText(event.target.value);
+                      emitTyping();
+                    }}
+                    placeholder="Gõ tin nhắn hỗ trợ học viên..."
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none min-h-[44px] max-h-[120px] placeholder-slate-400 custom-scrollbar"
+                    rows={1}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={!messageText.trim() || status !== "connected"}
+                  className="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition font-semibold text-xs flex items-center gap-1.5 shadow disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Gửi</span>
+                </button>
+              </form>
+            </>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-400 space-y-3">
+              <div className="p-4 bg-white rounded-full border border-slate-100 shadow-md">
+                <MessageSquare className="w-8 h-8 text-indigo-500" />
+              </div>
+              <h4 className="font-bold text-slate-700">
+                Hộp thư hỗ trợ SmartEdu
+              </h4>
+              <p className="text-xs text-slate-400 max-w-[280px]">
+                Chọn một cuộc trò chuyện từ danh sách học viên bên trái để tải
+                lịch sử và bắt đầu hỗ trợ trực tuyến.
+              </p>
             </div>
-          </CardFooter>
-        </CardContent>
-      </Card>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
