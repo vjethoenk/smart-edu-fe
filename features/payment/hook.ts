@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { cancelPaymentApi, createPaymentApi, getPaymentStatusApi } from "./api";
+import { cancelPaymentApi, createPaymentApi, getPaymentStatusApi, getAllPaymentsApi } from "./api";
 import { toast } from "sonner";
 
 export const useCreatePayment = () => {
@@ -9,6 +9,7 @@ export const useCreatePayment = () => {
     mutationFn: createPaymentApi,
     onSuccess: (data, variables: any) => {
       queryClient.invalidateQueries({ queryKey: ["payment"] });
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
       toast.success("Tạo thanh toán thành công");
     },
     onError: (error: any) => {
@@ -25,6 +26,7 @@ export const useCancelPayment = () => {
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payment"] });
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
       toast.success("Hủy thanh toán thành công");
     },
 
@@ -48,5 +50,15 @@ export const usePaymentStatus = (orderCode: number) => {
       return 3000;
     },
     enabled: !!orderCode,
+  });
+};
+
+export const useGetAllPayments = () => {
+  return useQuery({
+    queryKey: ["payments"],
+    queryFn: async () => {
+      const response = await getAllPaymentsApi();
+      return response.data; // trả về data trực tiếp từ axios (IPayment[])
+    },
   });
 };

@@ -112,12 +112,32 @@ export interface IQuiz {
 }
 
 export interface IPayment {
-  paymentId: string;
+  _id?: string;
+  paymentId?: string;
   orderCode: number;
   amount: number;
   status: string;
   checkoutUrl: string;
-  qrCode: string;
+  qrCode?: string;
+  user?: {
+    _id: string;
+    email: string;
+    name: string;
+  };
+  courseId?: {
+    _id: string;
+    title: string;
+    thumbnail: string;
+    price: string | number;
+    description?: string;
+    level?: string;
+  };
+  orderInfo?: string;
+  currency?: string;
+  transactionId?: string;
+  confirmedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface IEnrollment {

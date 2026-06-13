@@ -22,3 +22,7 @@ export const getPaymentStatusApi = (orderCode: number) => {
     `v1/payments/status/${orderCode}`,
   );
 };
+
+export const getAllPaymentsApi = () => {
+  return axiosClient.get<ApiResponse<IPayment[]>>(`v1/payments`);
+};

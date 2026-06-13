@@ -21,6 +21,7 @@ import {
   Users2,
   Tag,
   MessageCircle,
+  CreditCard,
 } from "lucide-react";
 import { useState, useMemo } from "react";
 
@@ -32,7 +33,7 @@ const ALL_MENUS = [
     requiredRole: null, // visible to all
   },
   {
-    name: "Quản Lí Giáo Viên",
+    name: "Quản lý người dùng",
     href: "/admin/users",
     icon: Users2,
     requiredRole: "ADMIN", // only ADMIN
@@ -68,16 +69,16 @@ const ALL_MENUS = [
     requiredRole: "ADMIN", // visible to all
   },
   {
+    name: "Quản lý thanh toán",
+    href: "/admin/payments",
+    icon: CreditCard,
+    requiredRole: "ADMIN", // only ADMIN
+  },
+  {
     name: "Câu hỏi",
     href: "/admin/questions",
     icon: FileQuestionMark,
     requiredRole: null, // visible to all
-  },
-  {
-    name: "Báo cáo",
-    href: "/admin/reports",
-    icon: BarChart3,
-    requiredRole: "ADMIN", // only ADMIN
   },
   {
     name: "Phê duyệt",
@@ -89,12 +90,6 @@ const ALL_MENUS = [
     name: "Vai Trò",
     href: "/admin/roles",
     icon: Shield,
-    requiredRole: "ADMIN", // only ADMIN
-  },
-  {
-    name: "Cài đặt",
-    href: "/admin/settings",
-    icon: Settings,
     requiredRole: "ADMIN", // only ADMIN
   },
 ];

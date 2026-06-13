@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import { useSelector } from "react-redux";
+
 import {
   BookOpen,
   FileText,
@@ -35,6 +37,7 @@ import { useGetLessons, useUpdateLesson } from "@/features/lesson/hook";
 import { useGetByIdCourse, useGetCourses } from "@/features/course/hook";
 import QuizPage from "../components/QuizPage";
 import PdfModal from "../components/PdfModel";
+import { RootState } from "@/store/type";
 
 const LESSON_TYPES = [
   {
@@ -66,6 +69,9 @@ const LESSON_TYPES = [
 const CourseDetailPage = () => {
   const { id } = useParams();
   const courseId = id as string;
+
+  const role = useSelector((state: RootState) => state.auth.role);
+  const isAdmin = role === "ADMIN";
 
   const { activeView, setActiveView, setCourseId } = useCourseStore();
   const [selectedType, setSelectedType] = useState("");
@@ -249,12 +255,14 @@ const CourseDetailPage = () => {
       <div className="w-full bg-[#f3f3f3] border-[#b9b9c0] border-l-2 p-6 min-h-[90vh]">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Nội dung</h2>
-          <button
-            className="border-none text-[#4D44E3] text-sm cursor-pointer font-medium hover:text-[#3F3DC9] transition-all"
-            onClick={toggleSectionInput}
-          >
-            + Thêm chương học
-          </button>
+          {!isAdmin && (
+            <button
+              className="border-none text-[#4D44E3] text-sm cursor-pointer font-medium hover:text-[#3F3DC9] transition-all"
+              onClick={toggleSectionInput}
+            >
+              + Thêm chương học
+            </button>
+          )}
         </div>
 
         <Accordion type="single" collapsible className="space-y-3">
@@ -288,29 +296,33 @@ const CourseDetailPage = () => {
                           <span>{l.title}</span>
                         </div>
 
-                        {/* Settings Icon */}
-                        <button
-                          onClick={(e) =>
-                            handleOpenSettings(e, l, s._id as string)
-                          }
-                          className="p-1 rounded hover:bg-gray-200 transition-colors"
-                        >
-                          <Settings className="w-4 h-4 text-gray-500" />
-                        </button>
+                        {/* Settings Icon - Chỉ hiện với INSTRUCTOR */}
+                        {!isAdmin && (
+                          <button
+                            onClick={(e) =>
+                              handleOpenSettings(e, l, s._id as string)
+                            }
+                            className="p-1 rounded hover:bg-gray-200 transition-colors"
+                          >
+                            <Settings className="w-4 h-4 text-gray-500" />
+                          </button>
+                        )}
                       </div>
                     ))}
 
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-center text-xs text-gray-500 border border-gray-300 border-dashed cursor-pointer hover:bg-gray-100"
-                      onClick={() => {
-                        setSelectedSectionId(s._id as string);
-                        setSelectedQuizId("");
-                        openLessonTypeSelector();
-                      }}
-                    >
-                      + ADD LESSON
-                    </Button>
+                    {!isAdmin && (
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-center text-xs text-gray-500 border border-gray-300 border-dashed cursor-pointer hover:bg-gray-100"
+                        onClick={() => {
+                          setSelectedSectionId(s._id as string);
+                          setSelectedQuizId("");
+                          openLessonTypeSelector();
+                        }}
+                      >
+                        + ADD LESSON
+                      </Button>
+                    )}
                   </div>
                 </AccordionContent>
               </Card>

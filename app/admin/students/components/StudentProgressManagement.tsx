@@ -12,7 +12,7 @@ import {
   Mail,
   Loader2,
   BookmarkCheck,
-  UserCheck
+  UserCheck,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
@@ -24,7 +24,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from "@/components/ui/table";
 import { useGetCourses, useGetCourseMonitoring } from "@/features/course/hook";
 
@@ -32,10 +32,12 @@ interface StudentProgressManagementProps {
   role: "ADMIN" | "INSTRUCTOR";
 }
 
-export function StudentProgressManagement({ role }: StudentProgressManagementProps) {
+export function StudentProgressManagement({
+  role,
+}: StudentProgressManagementProps) {
   const currentUser = useSelector((state: any) => state.auth.user);
   const { data: courses = [], isLoading: isLoadingCourses } = useGetCourses();
-  
+
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>("");
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -58,7 +60,7 @@ export function StudentProgressManagement({ role }: StudentProgressManagementPro
       // Instructors can only see their own courses
       return courses.filter((c: any) => c.createBy?._id === currentUser?._id);
     }
-    
+
     // Admin filters courses based on selected teacher (if any)
     if (!selectedTeacherId) return courses;
     return courses.filter((c: any) => c.createBy?._id === selectedTeacherId);
@@ -68,7 +70,9 @@ export function StudentProgressManagement({ role }: StudentProgressManagementPro
   useEffect(() => {
     if (filteredCourses.length > 0) {
       // If currently selected course is not in the filtered list, select the first one
-      const exists = filteredCourses.some((c: any) => c._id === selectedCourseId);
+      const exists = filteredCourses.some(
+        (c: any) => c._id === selectedCourseId,
+      );
       if (!exists) {
         setSelectedCourseId(filteredCourses[0]._id);
       }
@@ -78,18 +82,19 @@ export function StudentProgressManagement({ role }: StudentProgressManagementPro
   }, [filteredCourses, selectedCourseId]);
 
   // 4. Fetch Monitoring data for selected course
-  const { data: monitoringData, isLoading: isLoadingMonitoring } = useGetCourseMonitoring(selectedCourseId);
+  const { data: monitoringData, isLoading: isLoadingMonitoring } =
+    useGetCourseMonitoring(selectedCourseId);
 
   // 5. Search filter students
   const filteredStudents = useMemo(() => {
     const students = monitoringData?.topStudents ?? [];
     if (!searchQuery.trim()) return students;
-    
+
     const query = searchQuery.toLowerCase().trim();
     return students.filter(
       (student: any) =>
         student.name.toLowerCase().includes(query) ||
-        (student.email && student.email.toLowerCase().includes(query))
+        (student.email && student.email.toLowerCase().includes(query)),
     );
   }, [monitoringData, searchQuery]);
 
@@ -115,18 +120,20 @@ export function StudentProgressManagement({ role }: StudentProgressManagementPro
     return (
       <div className="flex flex-col items-center justify-center h-96 gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
-        <p className="text-slate-500 text-sm font-medium animate-pulse">Đang tải danh sách khóa học...</p>
+        <p className="text-slate-500 text-sm font-medium animate-pulse">
+          Đang tải danh sách khóa học...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-12">
+    <div className="space-y-8 max-w-8xl mx-auto pb-12">
       {/* Upper Banner Section */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-8 md:p-10 shadow-xl border border-white/5">
         <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl" />
-        
+
         <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-indigo-300 text-xs font-semibold backdrop-blur-md uppercase tracking-wider">
@@ -137,17 +144,17 @@ export function StudentProgressManagement({ role }: StudentProgressManagementPro
               Quản Lý Học Viên & Tiến Độ
             </h1>
             <p className="text-slate-300 max-w-2xl text-sm md:text-base leading-relaxed">
-              Theo dõi chi tiết các học viên đã đăng ký và thanh toán khóa học. Giám sát tiến độ học tập từng bài học để hỗ trợ kịp thời.
+              Theo dõi chi tiết các học viên đã đăng ký và thanh toán khóa học.
+              Giám sát tiến độ học tập từng bài học để hỗ trợ kịp thời.
             </p>
           </div>
         </div>
       </div>
 
       {/* Filter Section Card */}
-      <Card className="shadow-md border-slate-100 bg-white/80 backdrop-blur-md">
+      <Card className="shadow-md border-slate-100 bg-white/80 backdrop-blur-md ">
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-end">
-            
             {/* Admin filters: Teacher dropdown */}
             {role === "ADMIN" && (
               <div className="col-span-1 md:col-span-3 space-y-2">
@@ -170,7 +177,13 @@ export function StudentProgressManagement({ role }: StudentProgressManagementPro
             )}
 
             {/* Course dropdown */}
-            <div className={role === "ADMIN" ? "col-span-1 md:col-span-5 space-y-2" : "col-span-1 md:col-span-8 space-y-2"}>
+            <div
+              className={
+                role === "ADMIN"
+                  ? "col-span-1 md:col-span-5 space-y-2"
+                  : "col-span-1 md:col-span-8 space-y-2"
+              }
+            >
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
                 Chọn khóa học giám sát
               </label>
@@ -185,7 +198,9 @@ export function StudentProgressManagement({ role }: StudentProgressManagementPro
                 ) : (
                   filteredCourses.map((course: any) => (
                     <option key={course._id} value={course._id}>
-                      {course.title} {role === "ADMIN" && `— GV: ${course.createBy?.name || "N/A"}`}
+                      {course.title}{" "}
+                      {role === "ADMIN" &&
+                        `— GV: ${course.createBy?.name || "N/A"}`}
                     </option>
                   ))
                 )}
@@ -208,7 +223,6 @@ export function StudentProgressManagement({ role }: StudentProgressManagementPro
                 />
               </div>
             </div>
-            
           </div>
         </CardContent>
       </Card>
@@ -232,14 +246,15 @@ export function StudentProgressManagement({ role }: StudentProgressManagementPro
           <div className="space-y-8">
             {/* KPI Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              
               {/* Card 1: Total Enrolled */}
               <Card className="relative overflow-hidden border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group">
                 <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500" />
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start">
                     <div className="space-y-2">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Học viên thực tế</p>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        Học viên thực tế
+                      </p>
                       <h3 className="text-3xl font-extrabold text-slate-800 tracking-tight">
                         {monitoringData?.enrolledCount ?? 0}
                       </h3>
@@ -260,13 +275,20 @@ export function StudentProgressManagement({ role }: StudentProgressManagementPro
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start">
                     <div className="space-y-2">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tỷ lệ hoàn thành khóa</p>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        Tỷ lệ hoàn thành khóa
+                      </p>
                       <h3 className="text-3xl font-extrabold text-slate-800 tracking-tight">
                         {monitoringData?.completionRate ?? 0}%
                       </h3>
                       <p className="text-xs text-slate-500 flex items-center gap-1">
                         <BookmarkCheck className="w-3.5 h-3.5 text-emerald-500 inline" />
-                        <span><strong>{monitoringData?.completedStudents ?? 0}</strong> học viên học xong 100%</span>
+                        <span>
+                          <strong>
+                            {monitoringData?.completedStudents ?? 0}
+                          </strong>{" "}
+                          học viên học xong 100%
+                        </span>
                       </p>
                     </div>
                     <div className="p-3.5 bg-emerald-50 rounded-xl text-emerald-600 group-hover:scale-110 transition-transform duration-300">
@@ -282,14 +304,18 @@ export function StudentProgressManagement({ role }: StudentProgressManagementPro
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start">
                     <div className="space-y-2 flex-1">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tiến độ trung bình</p>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        Tiến độ trung bình
+                      </p>
                       <h3 className="text-3xl font-extrabold text-slate-800 tracking-tight">
                         {Math.round(monitoringData?.averageProgress ?? 0)}%
                       </h3>
                       <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
-                        <div 
+                        <div
                           className="bg-gradient-to-r from-violet-500 to-indigo-500 h-full rounded-full transition-all duration-500"
-                          style={{ width: `${monitoringData?.averageProgress ?? 0}%` }}
+                          style={{
+                            width: `${monitoringData?.averageProgress ?? 0}%`,
+                          }}
                         />
                       </div>
                     </div>
@@ -299,7 +325,6 @@ export function StudentProgressManagement({ role }: StudentProgressManagementPro
                   </div>
                 </CardContent>
               </Card>
-
             </div>
 
             {/* Students Table Area */}
@@ -311,10 +336,13 @@ export function StudentProgressManagement({ role }: StudentProgressManagementPro
                     <span>Danh Sách Học Viên Chi Tiết</span>
                   </h2>
                   <p className="text-xs text-slate-500 mt-1">
-                    Đang xem khóa học: <strong className="text-slate-700">{currentCourse?.title}</strong>
+                    Đang xem khóa học:{" "}
+                    <strong className="text-slate-700">
+                      {currentCourse?.title}
+                    </strong>
                   </p>
                 </div>
-                
+
                 <Badge className="bg-indigo-600 text-white font-medium px-2.5 py-1 text-xs self-start sm:self-center">
                   Tổng số: {filteredStudents.length} học viên
                 </Badge>
@@ -324,21 +352,39 @@ export function StudentProgressManagement({ role }: StudentProgressManagementPro
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent bg-slate-50/20">
-                      <TableHead className="font-semibold text-slate-700 py-4 pl-6">Học viên</TableHead>
-                      <TableHead className="font-semibold text-slate-700">Khóa học</TableHead>
-                      <TableHead className="font-semibold text-slate-700 text-center">Bài học hoàn thành</TableHead>
-                      <TableHead className="font-semibold text-slate-700 min-w-[200px]">Tiến độ học tập</TableHead>
-                      <TableHead className="font-semibold text-slate-700 text-center pr-6">Trạng thái</TableHead>
+                      <TableHead className="font-semibold text-slate-700 py-4 pl-6">
+                        Học viên
+                      </TableHead>
+                      <TableHead className="font-semibold text-slate-700">
+                        Khóa học
+                      </TableHead>
+                      <TableHead className="font-semibold text-slate-700 text-center">
+                        Bài học hoàn thành
+                      </TableHead>
+                      <TableHead className="font-semibold text-slate-700 min-w-[200px]">
+                        Tiến độ học tập
+                      </TableHead>
+                      <TableHead className="font-semibold text-slate-700 text-center pr-6">
+                        Trạng thái
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredStudents.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center py-16 text-slate-400">
+                        <TableCell
+                          colSpan={5}
+                          className="text-center py-16 text-slate-400"
+                        >
                           <div className="flex flex-col items-center justify-center gap-3">
                             <Users className="w-12 h-12 text-slate-200" />
-                            <p className="font-medium text-slate-500">Không tìm thấy học viên nào</p>
-                            <p className="text-xs text-slate-400 max-w-xs">Thử nhập từ khóa khác hoặc chưa có học viên nào tham gia khóa học này.</p>
+                            <p className="font-medium text-slate-500">
+                              Không tìm thấy học viên nào
+                            </p>
+                            <p className="text-xs text-slate-400 max-w-xs">
+                              Thử nhập từ khóa khác hoặc chưa có học viên nào
+                              tham gia khóa học này.
+                            </p>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -346,7 +392,10 @@ export function StudentProgressManagement({ role }: StudentProgressManagementPro
                       filteredStudents.map((student: any, idx: number) => {
                         const progress = student.progressPercent ?? 0;
                         return (
-                          <TableRow key={student.userId || idx} className="hover:bg-slate-50/50 transition-colors group">
+                          <TableRow
+                            key={student.userId || idx}
+                            className="hover:bg-slate-50/50 transition-colors group"
+                          >
                             {/* Student identity */}
                             <TableCell className="py-4 pl-6">
                               <div className="flex items-center gap-3">
@@ -375,7 +424,8 @@ export function StudentProgressManagement({ role }: StudentProgressManagementPro
                             {/* Completed lesson count */}
                             <TableCell className="text-center">
                               <div className="inline-flex items-center justify-center px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
-                                {student.completedLessons} / {student.totalLessons} bài học
+                                {student.completedLessons} /{" "}
+                                {student.totalLessons} bài học
                               </div>
                             </TableCell>
 
@@ -383,10 +433,12 @@ export function StudentProgressManagement({ role }: StudentProgressManagementPro
                             <TableCell>
                               <div className="space-y-2">
                                 <div className="flex justify-between items-center text-xs">
-                                  <span className="font-semibold text-slate-700">{progress}%</span>
+                                  <span className="font-semibold text-slate-700">
+                                    {progress}%
+                                  </span>
                                 </div>
                                 <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden shadow-inner relative">
-                                  <div 
+                                  <div
                                     className={`h-full rounded-full transition-all duration-500 ${getProgressColor(progress)}`}
                                     style={{ width: `${progress}%` }}
                                   />
@@ -428,12 +480,13 @@ export function StudentProgressManagement({ role }: StudentProgressManagementPro
               <GraduationCap className="w-12 h-12" />
             </div>
             <div className="space-y-1 max-w-sm">
-              <h3 className="font-bold text-slate-800 text-lg">Chưa có khóa học nào hoạt động</h3>
+              <h3 className="font-bold text-slate-800 text-lg">
+                Chưa có khóa học nào hoạt động
+              </h3>
               <p className="text-slate-500 text-sm">
-                {role === "ADMIN" 
+                {role === "ADMIN"
                   ? "Hệ thống hiện tại chưa có khóa học nào được đăng ký và xuất bản. Hãy thêm khóa học mới trước."
-                  : "Bạn chưa có khóa học giảng dạy nào được phát hành. Vui lòng tạo và đăng ký khóa học."
-                }
+                  : "Bạn chưa có khóa học giảng dạy nào được phát hành. Vui lòng tạo và đăng ký khóa học."}
               </p>
             </div>
           </CardContent>

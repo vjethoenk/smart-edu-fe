@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/type";
 import {
   Loader2,
   Trash2,
@@ -27,6 +29,7 @@ import { ApprovalStatus } from "@/features/course/enum";
 
 const CoursePage = () => {
   const router = useRouter();
+  const { role } = useSelector((state: RootState) => state.auth);
   const { data: courses, isLoading, isError } = useGetCourses();
   const { data: categories } = useGetCategories();
   const updateApproval = useUpdateApprovalCourse();
@@ -200,14 +203,19 @@ const CoursePage = () => {
                       <Button
                         variant="outline"
                         onClick={() => handleEditCourse(course)}
-                        className="border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+                        disabled={role === "ADMIN"}
+                        className="border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Edit2 className="mr-2 h-3.5 w-3.5" /> Sửa
                       </Button>
                       <Button
                         variant="outline"
                         onClick={() => handleApproval(course._id)}
-                        className="border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+                        disabled={
+                          course.status === ApprovalStatus.IN_REVIEW ||
+                          role === "ADMIN"
+                        }
+                        className="border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <BookOpen className="mr-2 h-3.5 w-3.5" /> Trình duyệt
                       </Button>

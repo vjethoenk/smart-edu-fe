@@ -4,7 +4,7 @@ import { StudentProgressManagement } from "./components/StudentProgressManagemen
 
 export default function AdminStudentsPage() {
   return (
-    <div className="p-6 md:p-8 bg-[#fdfdfd] min-h-[calc(100vh-80px)]">
+    <div className="px-8 md:py-8 bg-[#fdfdfd] min-h-[calc(100vh-80px)]">
       <StudentProgressManagement role="ADMIN" />
     </div>
   );
