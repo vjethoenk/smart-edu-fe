@@ -1,4 +1,5 @@
-'use client";';
+"use client";
+
 import { CheckCircle, ArrowRight, Home, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,8 +9,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
 
 const PaymentSuccess = () => {
+  const router = useRouter();
+
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 overflow-hidden">
       <div className="absolute inset-0 overflow-hidden">
@@ -58,12 +62,16 @@ const PaymentSuccess = () => {
           </CardContent>
 
           <CardFooter className="flex flex-col gap-3 pb-8 pt-0 px-6 border-0">
-            <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-2.5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 gap-2 group">
+            <Button
+              onClick={() => router.push("/my-courses")}
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-2.5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 gap-2 group"
+            >
               <span>Vào học ngay</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Button
               variant="outline"
+              onClick={() => router.push("/")}
               className="w-full border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-600 font-medium py-2.5 rounded-xl gap-2 group"
             >
               <Home className="w-4 h-4 group-hover:scale-110 transition-transform" />
