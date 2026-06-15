@@ -45,6 +45,7 @@ export default function QuizResult() {
     error,
   } = useGetAttemptResults(attemptId as string);
 
+
   const quizId = response?.data?.quizId;
 
   // Lấy danh sách câu trả lời của user
@@ -55,9 +56,9 @@ export default function QuizResult() {
   const { data: quizResponse, isLoading: isQuizLoading } = useGetQuestion(
     quizId as string,
   );
-
+  console.log(quizResponse);
   const handleRetry = () => {
-    router.back();
+    router.push(`/course/${quizResponse?.data?.[0].courseId}/view`);
   };
 
   const handleToggleDetails = () => {

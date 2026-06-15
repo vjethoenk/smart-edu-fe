@@ -38,16 +38,12 @@ export default function InstructorCard({
   const initial = getInitial(instructor.name || "");
 
   return (
-    <div className="group relative top-38 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+    <div className="group relative top-26 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
       {/* Decorative elements */}
       <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full opacity-60 -mr-20 -mt-20" />
       <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-pink-100 to-orange-100 rounded-full opacity-40 -ml-16 -mb-16" />
 
       {/* Header rating badge */}
-      <div className="absolute top-4 right-4 z-10 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1 shadow-sm flex items-center gap-1">
-        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-        <span className="text-xs font-bold text-gray-700">4.9</span>
-      </div>
 
       <div className="relative p-6">
         {/* Title */}

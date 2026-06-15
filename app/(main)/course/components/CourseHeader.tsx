@@ -15,12 +15,12 @@ export default function CourseHeader({
 
       <h1 className="text-3xl font-bold mt-2">{courseDetails?.title}</h1>
 
-      <div className="flex items-center gap-4 text-sm text-gray-500 mt-2">
+      {/* <div className="flex items-center gap-4 text-sm text-gray-500 mt-2">
         <span>⭐ 4.9</span>
         <span>12,406 reviews</span>
         <span>45,680 students enrolled</span>
         <span>English, Spanish</span>
-      </div>
+      </div> */}
     </div>
   );
 }
