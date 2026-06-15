@@ -132,12 +132,8 @@ export default function AdminDashboard() {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 bg-slate-100 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600">
             <Calendar className="h-4 w-4 text-indigo-500" />
-            <span>2026-05-27</span>
+            <span>{new Date().toISOString().split("T")[0]}</span>
           </div>
-          <Button className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl gap-2 font-medium shadow-md shadow-indigo-100 transition-all hover:shadow-lg">
-            <FileSpreadsheet className="h-4 w-4" />
-            <span>Xuất báo cáo</span>
-          </Button>
         </div>
       </div>
 
@@ -637,8 +633,16 @@ export default function AdminDashboard() {
               (() => {
                 const courses =
                   topCoursesType === "revenue"
-                    ? topRevenueCourses
-                    : topStudentsCourses;
+                    ? // For revenue view, compute total revenue = revenue * sales and sort desc
+                      topRevenueCourses
+                      ? [...topRevenueCourses].sort(
+                          (a, b) =>
+                            (b.revenue || 0) * (b.sales || 0) -
+                            (a.revenue || 0) * (a.sales || 0),
+                        )
+                      : []
+                    : // For students view, use provided data or empty array
+                      topStudentsCourses || [];
                 if (!courses || courses.length === 0) {
                   return (
                     <div className="p-12 text-center text-sm font-semibold text-slate-400">
@@ -652,7 +656,10 @@ export default function AdminDashboard() {
                       console.log("Course:", courses);
                       const numberMetric =
                         topCoursesType === "revenue"
-                          ? formatVND(course.revenue || 0)
+                          ? // display total revenue = revenue per sale * number of sales
+                            formatVND(
+                              (course.revenue || 0) * (course.sales || 0),
+                            )
                           : `${(course.students || course.sales || 0).toLocaleString()} học viên`;
 
                       const subMetric =

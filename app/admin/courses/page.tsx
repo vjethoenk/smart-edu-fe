@@ -102,6 +102,7 @@ const CoursePage = () => {
           <Button
             className="group relative flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 px-6 py-2.5 text-white shadow-md transition-all hover:shadow-lg hover:shadow-slate-200"
             onClick={handleAddCourse}
+            disabled={role === "ADMIN"}
           >
             <Plus className="h-4 w-4 transition-transform group-hover:rotate-90" />{" "}
             <span>Thêm khóa học mới</span>

@@ -27,7 +27,7 @@ const MentorAll = () => {
 
     const mentorMap = new Map<string, MentorStats>();
 
-    courses.forEach(course => {
+    courses.forEach((course) => {
       if (course.createBy && course.createBy._id) {
         const mentorId = course.createBy._id;
         if (!mentorMap.has(mentorId)) {
@@ -35,7 +35,7 @@ const MentorAll = () => {
             _id: mentorId,
             name: course.createBy.name,
             email: course.createBy.email,
-            courseCount: 1
+            courseCount: 1,
           });
         } else {
           const mentor = mentorMap.get(mentorId)!;
@@ -49,9 +49,10 @@ const MentorAll = () => {
 
   // Filter mentors by search query
   const filteredMentors = useMemo(() => {
-    return mentors.filter(mentor =>
-      mentor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      mentor.email.toLowerCase().includes(searchQuery.toLowerCase())
+    return mentors.filter(
+      (mentor) =>
+        mentor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        mentor.email.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [mentors, searchQuery]);
 
@@ -94,8 +95,12 @@ const MentorAll = () => {
     return (
       <div className="min-h-screen bg-gray-50/50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-red-600 mb-4 text-lg">Đã có lỗi xảy ra khi tải danh sách giảng viên</div>
-          <Button variant="outline" onClick={() => window.location.reload()}>Thử lại</Button>
+          <div className="text-red-600 mb-4 text-lg">
+            Đã có lỗi xảy ra khi tải danh sách giảng viên
+          </div>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            Thử lại
+          </Button>
         </div>
       </div>
     );
@@ -117,7 +122,8 @@ const MentorAll = () => {
               Gặp gỡ Giảng viên của chúng tôi
             </h1>
             <p className="text-lg text-indigo-200 mb-10 max-w-2xl mx-auto">
-              Học hỏi từ những chuyên gia hàng đầu trong ngành với nhiều năm kinh nghiệm thực chiến và đam mê chia sẻ kiến thức.
+              Học hỏi từ những chuyên gia hàng đầu trong ngành với nhiều năm
+              kinh nghiệm thực chiến và đam mê chia sẻ kiến thức.
             </p>
 
             {/* Search Bar */}
@@ -140,9 +146,15 @@ const MentorAll = () => {
       <div className="container mx-auto px-4 py-16">
         <div className="mb-8 flex justify-between items-end">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Tất cả giảng viên</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Tất cả giảng viên
+            </h2>
             <p className="text-gray-500 mt-1">
-              Tìm thấy <span className="font-bold text-indigo-600">{filteredMentors.length}</span> chuyên gia
+              Tìm thấy{" "}
+              <span className="font-bold text-indigo-600">
+                {filteredMentors.length}
+              </span>{" "}
+              chuyên gia
             </p>
           </div>
         </div>
@@ -162,7 +174,10 @@ const MentorAll = () => {
                     </AvatarFallback>
                   </Avatar>
 
-                  <Badge variant="secondary" className="mb-3 bg-blue-50 text-blue-700 hover:bg-blue-100 border-0">
+                  <Badge
+                    variant="secondary"
+                    className="mb-3 bg-blue-50 text-blue-700 hover:bg-blue-100 border-0"
+                  >
                     Giảng viên
                   </Badge>
 
@@ -172,7 +187,9 @@ const MentorAll = () => {
 
                   <div className="flex items-center justify-center text-sm text-gray-500 mb-4 gap-1.5">
                     <Mail className="w-3.5 h-3.5" />
-                    <span className="truncate max-w-[200px]">{mentor.email}</span>
+                    <span className="truncate max-w-[200px]">
+                      {mentor.email}
+                    </span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 py-4 border-t border-gray-50">
@@ -186,15 +203,15 @@ const MentorAll = () => {
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-1 text-gray-900 font-bold mb-1">
                         <Star className="w-4 h-4 text-yellow-400" />
-                        <span>4.8</span>
+                        {/* <span>4.8</span> */}
                       </div>
                       <span className="text-xs text-gray-500">Đánh giá</span>
                     </div>
                   </div>
 
-                  <Button className="w-full mt-2 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white transition-colors border-0">
+                  {/* <Button className="w-full mt-2 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white transition-colors border-0">
                     Xem hồ sơ
-                  </Button>
+                  </Button> */}
                 </CardContent>
               </Card>
             ))}
@@ -202,9 +219,12 @@ const MentorAll = () => {
         ) : (
           <div className="text-center py-24 bg-white rounded-3xl border border-gray-100 shadow-sm">
             <div className="text-6xl mb-6 opacity-80">👨‍🏫</div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-3">Không tìm thấy giảng viên</h3>
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">
+              Không tìm thấy giảng viên
+            </h3>
             <p className="text-gray-500 max-w-md mx-auto mb-8">
-              Không có giảng viên nào khớp với từ khóa "{searchQuery}". Vui lòng thử lại với tên hoặc email khác.
+              Không có giảng viên nào khớp với từ khóa "{searchQuery}". Vui lòng
+              thử lại với tên hoặc email khác.
             </p>
             <Button
               variant="default"

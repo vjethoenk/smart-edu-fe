@@ -32,7 +32,7 @@ export default function Hero() {
               size="lg"
               className="rounded-xl px-8 h-14 border-gray-200 text-indigo-600"
             >
-              Xem khóa học
+              <Link href="/course"> Xem khóa học</Link>
             </Button>
           </div>
         </div>

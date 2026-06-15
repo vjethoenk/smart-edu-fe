@@ -18,7 +18,7 @@ export default function CategoryPage() {
   );
 
   const handleDeleteCategory = (id: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
+    if (window.confirm("Bạn có chắc chắn muốn xóa thể loại này?")) {
       deleteMutation.mutate(id);
     }
   };
@@ -44,7 +44,7 @@ export default function CategoryPage() {
   if (isError) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-600">Có lỗi xảy ra khi tải danh sách danh mục</p>
+        <p className="text-red-600">Có lỗi xảy ra khi tải danh sách thể loại</p>
       </div>
     );
   }
@@ -54,10 +54,10 @@ export default function CategoryPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Quản lý danh mục
+            Quản lý thể loại
           </h1>
           <p className="text-gray-500 mt-1">
-            Tổng: {categories?.length || 0} danh mục
+            Tổng: {categories?.length || 0} thể loại
           </p>
         </div>
 
@@ -65,7 +65,7 @@ export default function CategoryPage() {
           className="flex items-center justify-center gap-2"
           onClick={handleAddCategory}
         >
-          <Plus className="w-4 h-4" /> Thêm danh mục
+          <Plus className="w-4 h-4" /> Thêm thể loại
         </Button>
 
         <CategoryModal
@@ -81,10 +81,10 @@ export default function CategoryPage() {
             <Card
               key={category._id}
               className="
-    group rounded-2xl bg-white
-    shadow-md hover:shadow-2xl hover:-translate-y-1
-    transition-all duration-300
-  "
+                  group rounded-2xl bg-white
+                  shadow-md hover:shadow-2xl hover:-translate-y-1
+                  transition-all duration-300
+                "
             >
               <CardContent className="p-5 flex flex-col h-full">
                 {/* Header */}
@@ -139,8 +139,8 @@ export default function CategoryPage() {
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-20 border border-dashed rounded-2xl bg-gray-50">
-          <p className="text-gray-500 mb-4">Chưa có danh mục nào</p>
-          <Button onClick={handleAddCategory}>Thêm danh mục ngay</Button>
+          <p className="text-gray-500 mb-4">Chưa có thể loại nào</p>
+          <Button onClick={handleAddCategory}>Thêm thể loại ngay</Button>
         </div>
       )}
     </div>

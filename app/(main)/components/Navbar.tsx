@@ -8,7 +8,11 @@ import { ShoppingCart, Bell, Trash2 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { useLogout } from "@/features/auth/hook";
 import { RootState } from "@/store/type";
-import { useGetCartTotal, useGetCart, useRemoveFromCart } from "@/features/cart/hook";
+import {
+  useGetCartTotal,
+  useGetCart,
+  useRemoveFromCart,
+} from "@/features/cart/hook";
 import { toast } from "sonner";
 
 function UserMenu() {
@@ -95,7 +99,10 @@ function CartMenu() {
 
   return (
     <div className="relative group">
-      <button className="hover:text-indigo-600 transition-colors relative" onClick={() => router.push("/cart")}>
+      <button
+        className="hover:text-indigo-600 transition-colors relative"
+        onClick={() => router.push("/cart")}
+      >
         <ShoppingCart className="w-[22px] h-[22px]" />
         {totalItems > 0 && (
           <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
@@ -106,7 +113,9 @@ function CartMenu() {
 
       <div className="absolute right-0 mt-2 w-80 bg-white shadow-lg rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto">
         <div className="p-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-800">Giỏ hàng ({totalItems})</h3>
+          <h3 className="font-semibold text-gray-800">
+            Giỏ hàng ({totalItems})
+          </h3>
         </div>
 
         {cartItems && cartItems.length > 0 ? (
@@ -121,14 +130,19 @@ function CartMenu() {
                     src={item.courseId?.thumbnail || "/placeholder.png"}
                     alt={item.courseId?.title || "Khóa học"}
                     className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                    onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.png"; }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/placeholder.png";
+                    }}
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-800 line-clamp-2">
                       {item.courseId?.title || "Khóa học"}
                     </p>
                     <p className="text-sm font-semibold text-indigo-600 mt-1">
-                      {Number(item.price || item.courseId?.price || 0).toLocaleString("vi-VN")}₫
+                      {Number(
+                        item.price || item.courseId?.price || 0,
+                      ).toLocaleString("vi-VN")}
+                      ₫
                     </p>
                   </div>
                   <button
@@ -148,12 +162,12 @@ function CartMenu() {
                   {Number(totalPrice || 0).toLocaleString("vi-VN")}₫
                 </span>
               </div>
-              <button
+              {/* <button
                 onClick={() => router.push("/cart")}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg transition-colors"
               >
                 Xem giỏ hàng
-              </button>
+              </button> */}
             </div>
           </>
         ) : (
@@ -166,7 +180,6 @@ function CartMenu() {
     </div>
   );
 }
-
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -221,9 +234,9 @@ export default function Navbar() {
 
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-5 text-gray-500">
-            <button className="hover:text-indigo-600 transition-colors">
+            {/* <button className="hover:text-indigo-600 transition-colors">
               <Bell className="w-[22px] h-[22px]" />
-            </button>
+            </button> */}
             <CartMenu />
           </div>
 

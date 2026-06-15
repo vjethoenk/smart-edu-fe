@@ -37,7 +37,7 @@ export default function HeaderAdmin() {
     <header className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 px-6 py-3 flex items-center justify-between sticky top-0 z-30 shadow-sm h-[80px]">
       {/* Search Section */}
       <div className="relative w-2/5">
-        <Search
+        {/* <Search
           className={cn(
             "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200",
             searchFocused ? "text-indigo-500" : "text-gray-400",
@@ -53,7 +53,7 @@ export default function HeaderAdmin() {
               ? "border-indigo-300 ring-2 ring-indigo-500/20 bg-white"
               : "border-gray-200 bg-gray-50/50 hover:bg-white",
           )}
-        />
+        /> */}
       </div>
 
       {/* Actions Section */}

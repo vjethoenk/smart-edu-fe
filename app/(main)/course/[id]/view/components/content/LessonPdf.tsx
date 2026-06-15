@@ -8,7 +8,7 @@ const LessonPdf = ({ lesson }: { lesson: ILesson }) => {
         <div className="space-y-4">
           <div className="relative overflow-hidden bg-slate-900 border-b border-slate-400  ">
             <iframe
-              src={lesson.pdfUrl}
+              src={`${lesson.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
               className="w-full aspect-[16/10]"
               title={lesson.title}
             />

@@ -46,9 +46,27 @@ export default function ApprovalPage() {
   const { mutate: approval } = useUpdateApprovalCourse();
   const { mutate: approveQuestion } = useApproveQuestion();
 
+  const formatSubmissionDate = (value?: string | null) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return new Intl.DateTimeFormat("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  };
+
   const courseData = courses
     ?.filter((e) => e.status !== ApprovalStatus.PENDING)
-    .slice();
+    .slice()
+    .sort((a, b) => {
+      const aTime = new Date(a.createdAt || "").getTime() || 0;
+      const bTime = new Date(b.createdAt || "").getTime() || 0;
+      return bTime - aTime;
+    });
   const questionData = questions?.data?.data
     ?.filter((q) => q.status !== ApprovalStatus.PENDING)
     .slice();
@@ -146,22 +164,6 @@ export default function ApprovalPage() {
                   Hệ thống kiểm duyệt nội dung và phê duyệt khóa học
                 </p>
               </div>
-            </div>
-
-            <div className="flex gap-3">
-              <Card className="border-0 bg-white/20 backdrop-blur-md shadow-lg">
-                <CardContent className="p-4 text-center">
-                  <p className="text-2xl font-bold text-white">24</p>
-                  <p className="text-xs text-white/80">Chờ duyệt</p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 bg-white/20 backdrop-blur-md shadow-lg">
-                <CardContent className="p-4 text-center">
-                  <p className="text-2xl font-bold text-white">156</p>
-                  <p className="text-xs text-white/80">Đã duyệt</p>
-                </CardContent>
-              </Card>
             </div>
           </div>
         </div>
@@ -304,7 +306,7 @@ export default function ApprovalPage() {
                             <Calendar className="h-4 w-4 text-indigo-400" />
                             <div>
                               <p className="text-sm font-medium text-slate-900">
-                                {item.createdAt}
+                                {formatSubmissionDate(item.createdAt)}
                               </p>
                             </div>
                           </div>
