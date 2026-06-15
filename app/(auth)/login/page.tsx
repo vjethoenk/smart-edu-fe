@@ -34,7 +34,9 @@ export default function LoginPage() {
         },
         onError: (error: any) => {
           const message =
-            error.response?.data?.message || "Email hoặc mật khẩu không đúng!";
+            error?.response?.data?.message ||
+            error?.message ||
+            "Email hoặc mật khẩu không đúng!";
           toast.error("Đăng nhập thất bại", {
             description: message,
           });

@@ -9,6 +9,9 @@ import {
   Settings,
   Video,
   BarChart,
+  MoreVertical,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -21,7 +24,11 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-import { useCreateSection } from "@/features/section/hook";
+import {
+  useCreateSection,
+  useUpdateSection,
+  useDeleteSection,
+} from "@/features/section/hook";
 import VideoModal from "@/app/admin/courses/components/VideoModal";
 import { useCourseStore } from "@/features/course/store";
 import { EActiveView } from "@/features/course/enum";
@@ -37,7 +44,14 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useUpdateLesson } from "@/features/lesson/hook";
+import { useUpdateLesson, useDeleteLesson } from "@/features/lesson/hook";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 const LESSON_TYPES = [
   {
@@ -119,15 +133,55 @@ const CourseDetailPage = () => {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const { mutate: updateLesson } = useUpdateLesson();
 
+  const { mutate: updateSection } = useUpdateSection();
+  const { mutate: deleteSection } = useDeleteSection();
+  const { mutate: deleteLesson } = useDeleteLesson();
+
+  const [isEditSectionOpen, setIsEditSectionOpen] = useState(false);
+  const [editingSectionId, setEditingSectionId] = useState("");
+  const [editingSectionTitle, setEditingSectionTitle] = useState("");
+
+  const [isConfirmDeleteSectionOpen, setIsConfirmDeleteSectionOpen] =
+    useState(false);
+  const [sectionToDeleteId, setSectionToDeleteId] = useState("");
+  const [sectionToDeleteTitle, setSectionToDeleteTitle] = useState("");
+
+  const [isConfirmDeleteLessonOpen, setIsConfirmDeleteLessonOpen] =
+    useState(false);
+  const [lessonToDeleteId, setLessonToDeleteId] = useState("");
+  const [lessonToDeleteTitle, setLessonToDeleteTitle] = useState("");
+
+  const handleUpdateSection = () => {
+    if (!editingSectionTitle.trim()) return;
+    updateSection({
+      id: editingSectionId,
+      data: { title: editingSectionTitle, courseId } as any,
+    });
+    setIsEditSectionOpen(false);
+  };
+
+  const handleDeleteSection = () => {
+    if (!sectionToDeleteId) return;
+    deleteSection(sectionToDeleteId);
+    setIsConfirmDeleteSectionOpen(false);
+  };
+
+  const handleDeleteLesson = () => {
+    if (!lessonToDeleteId) return;
+    deleteLesson(lessonToDeleteId);
+    setIsConfirmDeleteLessonOpen(false);
+  };
+
   const handleSaveCompletionSettings = () => {
     const payload = {
+      courseId, // Để trigger invalidate query
       completionConditions: {
         duration: completionTime ? parseInt(completionTime) : undefined,
       },
     };
     updateLesson({
       id: selectedLesson._id,
-      data: payload,
+      data: payload as any,
     });
     setIsSettingsModalOpen(false);
   };
@@ -140,7 +194,7 @@ const CourseDetailPage = () => {
     e.stopPropagation();
     setSelectedLesson(lesson);
     setSelectedSectionId(sectionId);
-    setCompletionTime(lesson.completionTime?.toString() || "");
+    setCompletionTime(lesson.completionConditions?.duration?.toString() || "");
     setCompletionPercentage(lesson.completionPercentage?.toString() || "");
     setIsSettingsModalOpen(true);
   };
@@ -213,6 +267,15 @@ const CourseDetailPage = () => {
             />
           );
         }
+        if (selectedType === "pdf") {
+          return (
+            <PdfModal
+              lessonId={lessonId}
+              type={selectedType}
+              sectionId={selectedSectionId}
+            />
+          );
+        }
         return (
           <VideoModal
             lessonId={lessonId}
@@ -251,9 +314,52 @@ const CourseDetailPage = () => {
               <AccordionItem value={`section-${index + 1}`} key={s._id}>
                 <Card className="rounded-xl shadow-sm bg-[#ffffff]">
                   <AccordionTrigger className="px-3 py-1 hover:no-underline">
-                    <div className="flex items-center gap-2 font-semibold text-gray-700">
-                      <GripVertical className="w-4 h-4 opacity-50" />
-                      <span>{s.title}</span>
+                    <div className="flex items-center justify-between w-full pr-4">
+                      <div className="flex items-center gap-2 font-semibold text-gray-700">
+                        <GripVertical className="w-4 h-4 opacity-50" />
+                        <span>{s.title}</span>
+                      </div>
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <div
+                              className="p-1 rounded hover:bg-gray-200 transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                              }}
+                            >
+                              <MoreVertical className="w-4 h-4 text-gray-500" />
+                            </div>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingSectionId(s._id as string);
+                                setEditingSectionTitle(s.title);
+                                setIsEditSectionOpen(true);
+                              }}
+                            >
+                              <Pencil className="w-4 h-4 mr-2" />
+                              {/* Sửa chương học */}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-red-600 focus:text-red-600"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSectionToDeleteId(s._id as string);
+                                setSectionToDeleteTitle(s.title);
+                                setIsConfirmDeleteSectionOpen(true);
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              {/* Xóa chương học */}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
                   </AccordionTrigger>
 
@@ -276,14 +382,44 @@ const CourseDetailPage = () => {
                             <span>{l.title}</span>
                           </div>
 
-                          <button
-                            onClick={(e) =>
-                              handleOpenSettings(e, l, s._id as string)
-                            }
-                            className="p-1 rounded hover:bg-gray-200 transition-colors"
-                          >
-                            <Settings className="w-4 h-4 text-gray-500" />
-                          </button>
+                          <div onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <div
+                                  className="p-1 rounded hover:bg-gray-200 transition-colors"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                  }}
+                                >
+                                  <Settings className="w-4 h-4 text-gray-500" />
+                                </div>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={(e) =>
+                                    handleOpenSettings(e, l, s._id as string)
+                                  }
+                                >
+                                  <Settings className="w-4 h-4 mr-2" />
+                                  Cài đặt bài học
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-red-600 focus:text-red-600"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setLessonToDeleteId(l._id as string);
+                                    setLessonToDeleteTitle(l.title || "");
+                                    setIsConfirmDeleteLessonOpen(true);
+                                  }}
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Xóa bài học
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </div>
                       ))}
 
@@ -397,6 +533,111 @@ const CourseDetailPage = () => {
           <DialogFooter>
             <Button onClick={() => setIsMonitoringModalOpen(false)}>
               Đóng
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Sửa chương học */}
+      <Dialog open={isEditSectionOpen} onOpenChange={setIsEditSectionOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Sửa tên chương học</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Tên chương học
+              </label>
+              <Input
+                value={editingSectionTitle}
+                onChange={(e) => setEditingSectionTitle(e.target.value)}
+                className="w-full border border-gray-300"
+                placeholder="Nhập tên chương học mới"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleUpdateSection();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditSectionOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button onClick={handleUpdateSection}>Lưu thay đổi</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Xác nhận Xóa chương học */}
+      <Dialog
+        open={isConfirmDeleteSectionOpen}
+        onOpenChange={setIsConfirmDeleteSectionOpen}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">
+              Xác nhận xóa chương học
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-gray-600">
+              Bạn có chắc chắn muốn xóa chương học{" "}
+              <span className="font-semibold text-gray-900">
+                "{sectionToDeleteTitle}"
+              </span>
+              ? Tất cả các bài học bên trong chương này cũng sẽ bị xóa và hành
+              động này không thể hoàn tác.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsConfirmDeleteSectionOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteSection}>
+              Xóa chương học
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Xác nhận Xóa bài học */}
+      <Dialog
+        open={isConfirmDeleteLessonOpen}
+        onOpenChange={setIsConfirmDeleteLessonOpen}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">
+              Xác nhận xóa bài học
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-gray-600">
+              Bạn có chắc chắn muốn xóa bài học{" "}
+              <span className="font-semibold text-gray-900">
+                "{lessonToDeleteTitle}"
+              </span>
+              ? Hành động này không thể hoàn tác.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsConfirmDeleteLessonOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteLesson}>
+              Xóa bài học
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -6,7 +6,6 @@ export default function InstructorChatPage() {
       <ChatPanel
         title="Chat Giảng viên"
         subtitle="Liên hệ trực tiếp với học viên trong các khóa học bạn đang giảng dạy."
-        showCourseFilter
       />
     </div>
   );
