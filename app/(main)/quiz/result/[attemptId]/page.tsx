@@ -18,12 +18,14 @@ import {
   Timer,
   PartyPopper,
   BookOpen,
+  ArrowLeft,
 } from "lucide-react";
 
 import { useParams, useRouter } from "next/navigation";
 import {
   useGetAttemptResults,
   useGetAttemptAnswers,
+  useCreateAttempt,
 } from "@/features/attempt/hook";
 import { useGetQuestion } from "@/features/quiz/hook";
 import { useState, useRef } from "react";
@@ -57,8 +59,23 @@ export default function QuizResult() {
     quizId as string,
   );
   console.log(quizResponse);
+  const { mutate: createAttempt, isPending: isRetrying } = useCreateAttempt();
+
   const handleRetry = () => {
-    router.push(`/course/${quizResponse?.data?.[0].courseId}/view`);
+    if (!quizId) return;
+    createAttempt(
+      {
+        quizId: quizId as string,
+        startTime: new Date(),
+        score: 0,
+        status: "in_progress",
+      },
+      {
+        onSuccess: (res) => {
+          router.push(`/quiz/${quizId}/attempt/${res.data.attemptId}`);
+        },
+      },
+    );
   };
 
   const handleToggleDetails = () => {
@@ -109,7 +126,9 @@ export default function QuizResult() {
   const data = response?.data;
   if (!data) return null;
 
-  const questions = (quizResponse?.data?.[0] as any)?.questions || [];
+  const quizData = quizResponse?.data?.[0] as any;
+  const questions = quizData?.questions || [];
+  const quizCourseId = quizData?.courseId;
   const userAnswers = answersResponse?.data || [];
 
   const userAnswersMap = new Map(
@@ -153,6 +172,18 @@ export default function QuizResult() {
         <Card className="border-0 shadow-xl overflow-hidden p-0">
           <div className="relative h-32 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">
             <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]" />
+            {/* Nút quay lại khóa học */}
+            {quizCourseId && (
+              <Button
+                onClick={() => router.push(`/course/${quizCourseId}/view`)}
+                variant="ghost"
+                size="sm"
+                className="absolute top-4 left-4 z-10 text-white/80 hover:text-white hover:bg-white/20 gap-1.5"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Quay lại khóa học
+              </Button>
+            )}
             <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
               <h1 className="text-2xl md:text-3xl font-bold mb-2">
                 {data.quizTitle}
@@ -310,10 +341,15 @@ export default function QuizResult() {
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 onClick={handleRetry}
-                className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg transition-all duration-200 transform hover:scale-105"
+                disabled={isRetrying || !quizId}
+                className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                <Flag className="w-4 h-4 mr-2" />
-                Làm lại bài quiz
+                {isRetrying ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Flag className="w-4 h-4 mr-2" />
+                )}
+                {isRetrying ? "Đang tạo bài làm..." : "Làm lại bài quiz"}
               </Button>
               <Button
                 onClick={handleToggleDetails}

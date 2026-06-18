@@ -2,7 +2,7 @@
 
 import { useGetQuestion } from "@/features/quiz/hook";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import {
   Trophy,
   ChevronRight,
@@ -53,7 +53,27 @@ const QuizDetailPage = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
 
   const quiz = data?.data?.[0] as Quiz | undefined;
-  const totalQuestions = quiz?.questions?.length || 0;
+
+  // Random 5 câu hỏi từ kho câu hỏi và shuffle options mỗi câu — chỉ tính 1 lần khi data sẵn sàng
+  const QUESTION_COUNT = 5;
+  const randomizedQuestions = useMemo<Question[]>(() => {
+    if (!quiz?.questions || quiz.questions.length === 0) return [];
+    // Fisher-Yates shuffle để lấy ngẫu nhiên
+    const pool = [...quiz.questions] as Question[];
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    // Lấy tối đa QUESTION_COUNT câu
+    const selected = pool.slice(0, Math.min(QUESTION_COUNT, pool.length));
+    // Shuffle options của từng câu hỏi
+    return selected.map((q) => ({
+      ...q,
+      options: [...q.options].sort(() => Math.random() - 0.5),
+    }));
+  }, [quiz?._id]); // Chỉ re-compute khi quiz thay đổi
+
+  const totalQuestions = randomizedQuestions.length;
   const answeredCount = Object.keys(answers).length;
   const progress =
     totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
@@ -61,6 +81,48 @@ const QuizDetailPage = () => {
   const { mutate: saveAnswer } = useSaveAnswer();
   const { mutate: submitQuiz } = useSubmitQuiz();
   const { mutate: sendTrackingEvent } = useCreateTracking();
+
+  // Đếm ngược thời gian (tính bằng giây)
+  const limitSeconds = quiz?.limitTime ? quiz.limitTime * 60 : 0;
+  const [timeLeft, setTimeLeft] = useState<number>(limitSeconds);
+  const hasAutoSubmitted = useRef(false);
+
+  // Cập nhật timeLeft khi quiz data load xong
+  useEffect(() => {
+    if (limitSeconds > 0) {
+      setTimeLeft(limitSeconds);
+    }
+  }, [limitSeconds]);
+
+  // Interval đếm ngược
+  useEffect(() => {
+    if (limitSeconds <= 0) return; // không giới hạn thì không đếm
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [limitSeconds]);
+
+  // Tự nộp bài khi hết giờ
+  useEffect(() => {
+    if (limitSeconds > 0 && timeLeft === 0 && !hasAutoSubmitted.current) {
+      hasAutoSubmitted.current = true;
+      handleSubmitRef.current();
+    }
+  }, [timeLeft, limitSeconds]);
+
+  // Format thời gian còn lại thành MM:SS
+  const formatTimeLeft = useCallback((seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  }, []);
 
   const handleChooseAnswer = (questionId: string, selectedAnswer: string) => {
     saveAnswer({
@@ -70,7 +132,7 @@ const QuizDetailPage = () => {
     });
     setAnswers((prev) => ({ ...prev, [questionId]: selectedAnswer }));
   };
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     submitQuiz(
       { attemptId: attemptId as string },
       {
@@ -89,7 +151,11 @@ const QuizDetailPage = () => {
         },
       },
     );
-  };
+  }, [attemptId, lessonId, courseId, submitQuiz, sendTrackingEvent]);
+  const handleSubmitRef = useRef(handleSubmit);
+  useEffect(() => {
+    handleSubmitRef.current = handleSubmit;
+  }, [handleSubmit]);
 
   if (isLoading) {
     return (
@@ -122,7 +188,7 @@ const QuizDetailPage = () => {
     );
   }
 
-  if (!quiz || !quiz.questions || quiz.questions.length === 0) {
+  if (!quiz || !quiz.questions || randomizedQuestions.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
         <Alert className="max-w-md bg-yellow-500/10 border-yellow-500/20 text-white">
@@ -135,7 +201,7 @@ const QuizDetailPage = () => {
     );
   }
 
-  const currentQ = quiz.questions[currentQuestion];
+  const currentQ = randomizedQuestions[currentQuestion];
   const currentQuestionId = currentQ?._id;
 
   return (
@@ -174,22 +240,47 @@ const QuizDetailPage = () => {
                 <div>
                   <p className="text-purple-300 text-sm">Tổng số câu</p>
                   <p className="text-white text-2xl font-bold">
-                    {quiz.questions.length}
+                    {totalQuestions}
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all">
+            <Card className={cn(
+              "border-white/10 backdrop-blur-sm transition-all",
+              limitSeconds > 0 && timeLeft <= 60
+                ? "bg-red-500/15 border-red-500/30 animate-pulse"
+                : "bg-white/5 hover:bg-white/10",
+            )}>
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <Timer className="w-5 h-5 text-blue-400" />
+                <div className={cn(
+                  "p-2 rounded-lg",
+                  limitSeconds > 0 && timeLeft <= 60
+                    ? "bg-red-500/30"
+                    : "bg-blue-500/20",
+                )}>
+                  <Timer className={cn(
+                    "w-5 h-5",
+                    limitSeconds > 0 && timeLeft <= 60
+                      ? "text-red-400"
+                      : "text-blue-400",
+                  )} />
                 </div>
                 <div>
-                  <p className="text-purple-300 text-sm">Thời gian</p>
-                  <p className="text-white text-2xl font-bold">
-                    {quiz.limitTime > 0
-                      ? `${quiz.limitTime} phút`
+                  <p className={cn(
+                    "text-sm",
+                    limitSeconds > 0 && timeLeft <= 60
+                      ? "text-red-300"
+                      : "text-purple-300",
+                  )}>Thời gian còn lại</p>
+                  <p className={cn(
+                    "text-2xl font-bold tabular-nums",
+                    limitSeconds > 0 && timeLeft <= 60
+                      ? "text-red-400"
+                      : "text-white",
+                  )}>
+                    {limitSeconds > 0
+                      ? formatTimeLeft(timeLeft)
                       : "Không giới hạn"}
                   </p>
                 </div>
@@ -247,7 +338,7 @@ const QuizDetailPage = () => {
                 <Progress value={progress} className="h-2 mb-6 bg-white/10" />
 
                 <div className="grid grid-cols-5 gap-2">
-                  {quiz.questions.map((question: Question, idx: number) => (
+                  {randomizedQuestions.map((question: Question, idx: number) => (
                     <button
                       key={question._id}
                       onClick={() => setCurrentQuestion(idx)}
