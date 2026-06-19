@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import * as XLSX from "xlsx";
 import {
   TrendingUp,
   Users,
@@ -26,12 +27,21 @@ import {
   useGetStatisticsStudentsProgress,
   useGetStatisticsOrdersSummary,
   useGetStatisticsVideosOverview,
+  useGetStatisticsRevenue,
 } from "@/features/statistics/hook";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export default function AdminDashboard() {
   const currentYear = new Date().getFullYear();
@@ -45,11 +55,32 @@ export default function AdminDashboard() {
     null,
   );
 
+  // Khai báo state cho bộ lọc khoảng thời gian
+  const now = new Date();
+  const formatLocalDate = (date: Date) => {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const dd = String(date.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+  const firstDayOfMonth = formatLocalDate(new Date(now.getFullYear(), now.getMonth(), 1));
+  const todayStr = formatLocalDate(now);
+
+  const [startDate, setStartDate] = useState<string>(firstDayOfMonth);
+  const [endDate, setEndDate] = useState<string>(todayStr);
+  const [period, setPeriod] = useState<"day" | "week" | "month" | "year">("day");
+
   // Gọi các React Query hooks lấy dữ liệu
   const { data: overview, isLoading: isOverviewLoading } =
     useGetStatisticsOverview();
   const { data: monthlyChart, isLoading: isChartLoading } =
     useGetStatisticsRevenueMonthlyChart(selectedYear);
+  const { data: rangeRevenue, isLoading: isRangeRevenueLoading } =
+    useGetStatisticsRevenue({
+      start: startDate,
+      end: endDate,
+      period: period,
+    });
   const { data: topRevenueCourses, isLoading: isTopRevenueLoading } =
     useGetStatisticsTopCourses({ type: "revenue", limit: 5 });
   const { data: topStudentsCourses, isLoading: isTopStudentsLoading } =
@@ -62,6 +93,48 @@ export default function AdminDashboard() {
     useGetStatisticsOrdersSummary();
   const { data: videosOverview, isLoading: isVideosLoading } =
     useGetStatisticsVideosOverview();
+
+  // Hàm xuất Excel
+  const handleExportExcel = () => {
+    if (!rangeRevenue || rangeRevenue.length === 0) {
+      alert("Không có dữ liệu trong khoảng thời gian đã chọn để xuất Excel!");
+      return;
+    }
+
+    const totalRevenueSum = rangeRevenue.reduce((sum, item) => sum + (item.revenue || 0), 0);
+    const totalOrdersSum = rangeRevenue.reduce((sum, item) => sum + (item.orders || 0), 0);
+
+    // Chuẩn hóa dữ liệu sang dạng bảng để ghi vào sheet
+    const excelData = rangeRevenue.map((item, index) => ({
+      "STT": index + 1,
+      "Thời gian": item.period,
+      "Doanh thu (VND)": item.revenue,
+      "Số đơn hàng": item.orders,
+    }));
+
+    // Bổ sung dòng tổng cộng ở cuối
+    excelData.push({
+      "STT": "" as any,
+      "Thời gian": "TỔNG CỘNG",
+      "Doanh thu (VND)": totalRevenueSum,
+      "Số đơn hàng": totalOrdersSum,
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    // Định dạng độ rộng cột (đảm bảo hiển thị đẹp và không tràn ô)
+    worksheet["!cols"] = [
+      { wch: 8 },  // STT
+      { wch: 18 }, // Thời gian
+      { wch: 22 }, // Doanh thu
+      { wch: 15 }, // Số đơn hàng
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Thống kê");
+
+    XLSX.writeFile(workbook, `Thong_Ke_Doanh_Thu_${startDate}_den_${endDate}.xlsx`);
+  };
 
   // Định dạng tiền tệ VND
   const formatVND = (value: number) => {
@@ -89,6 +162,14 @@ export default function AdminDashboard() {
     monthlyChart && monthlyChart.length > 0
       ? Math.max(...monthlyChart.map((d) => d.revenue), 1000000)
       : 1000000;
+
+  const maxRangeRevenue =
+    rangeRevenue && rangeRevenue.length > 0
+      ? Math.max(...rangeRevenue.map((d) => d.revenue), 1000000)
+      : 1000000;
+
+  const totalRangeRevenue = rangeRevenue?.reduce((sum, item) => sum + (item.revenue || 0), 0) || 0;
+  const totalRangeOrders = rangeRevenue?.reduce((sum, item) => sum + (item.orders || 0), 0) || 0;
 
   // Render Skeleton cho phần Loading
   const renderCardSkeleton = () => (
@@ -136,6 +217,69 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Bộ lọc khoảng thời gian */}
+      <Card className="rounded-2xl border-slate-100 shadow-sm bg-white overflow-hidden p-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="space-y-1">
+            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-indigo-500" />
+              <span>Bộ lọc khoảng thời gian</span>
+            </h3>
+            <p className="text-xs font-medium text-slate-400">
+              Chọn mốc thời gian để xem chi tiết thống kê doanh thu và xuất báo cáo.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-wrap">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-500">Từ ngày</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 h-10 w-full sm:w-40"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-500">Đến ngày</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 h-10 w-full sm:w-40"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-500">Xem theo</label>
+              <select
+                value={period}
+                onChange={(e) => setPeriod(e.target.value as any)}
+                className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 h-10 w-full sm:w-36 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M7%209l3%203%203-3%22%20stroke%3D%22%236b7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat pr-8"
+              >
+                <option value="day">Theo ngày</option>
+                <option value="week">Theo tuần</option>
+                <option value="month">Theo tháng</option>
+                <option value="year">Theo năm</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5 self-end w-full sm:w-auto">
+              <span className="hidden sm:inline-block h-5"></span>
+              <Button
+                onClick={handleExportExcel}
+                disabled={isRangeRevenueLoading || !rangeRevenue || rangeRevenue.length === 0}
+                className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-10 px-4 flex items-center justify-center gap-2 shadow-sm transition-all duration-200 disabled:opacity-50"
+              >
+                <FileSpreadsheet className="h-4 w-4" />
+                <span>Xuất file Excel</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Card>
 
       {/* KPI Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -228,6 +372,187 @@ export default function AdminDashboard() {
             </div>
           </>
         )}
+      </div>
+
+      {/* Thống kê theo khoảng thời gian */}
+      <div className="grid grid-cols-1 gap-8">
+        <Card className="rounded-2xl border-slate-100 shadow-sm bg-white overflow-hidden">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-50 pb-6">
+            <div>
+              <CardTitle className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-indigo-500" />
+                <span>Báo cáo doanh số theo khoảng thời gian</span>
+              </CardTitle>
+              <p className="text-xs font-medium text-slate-400 mt-1">
+                Số liệu từ ngày {startDate} đến ngày {endDate} (Nhóm theo {period === "day" ? "ngày" : period === "week" ? "tuần" : period === "month" ? "tháng" : "năm"}).
+              </p>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6 space-y-8">
+            {/* KPI tóm tắt trong kỳ */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="bg-slate-50/50 border border-slate-100 rounded-2xl p-5">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+                  Doanh thu trong kỳ
+                </span>
+                <span className="text-xl font-extrabold text-indigo-600 block">
+                  {formatVND(totalRangeRevenue)}
+                </span>
+              </div>
+              <div className="bg-slate-50/50 border border-slate-100 rounded-2xl p-5">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+                  Số đơn hàng trong kỳ
+                </span>
+                <span className="text-xl font-extrabold text-slate-800 block">
+                  {totalRangeOrders.toLocaleString()} đơn hàng
+                </span>
+              </div>
+              <div className="bg-slate-50/50 border border-slate-100 rounded-2xl p-5">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+                  Doanh số trung bình / mốc
+                </span>
+                <span className="text-xl font-extrabold text-emerald-600 block">
+                  {formatVND(rangeRevenue && rangeRevenue.length > 0 ? totalRangeRevenue / rangeRevenue.length : 0)}
+                </span>
+              </div>
+            </div>
+
+            {/* Biểu đồ & Bảng chi tiết */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+              {/* Biểu đồ SVG */}
+              <div className="border border-slate-100 rounded-2xl p-5 bg-slate-50/30">
+                <h4 className="text-sm font-bold text-slate-700 mb-4">Biểu đồ tăng trưởng doanh thu</h4>
+                {isRangeRevenueLoading ? (
+                  <div className="flex flex-col items-center justify-center h-64 space-y-3">
+                    <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+                    <p className="text-xs font-semibold text-slate-400">Đang tính toán dữ liệu...</p>
+                  </div>
+                ) : !rangeRevenue || rangeRevenue.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-64 text-center">
+                    <TrendingDown className="h-8 w-8 text-slate-300 mb-2" />
+                    <p className="text-xs font-semibold text-slate-400">Không có dữ liệu trong kỳ này</p>
+                  </div>
+                ) : (
+                  <div className="relative w-full overflow-hidden select-none">
+                    <svg viewBox="0 0 700 250" className="w-full h-auto overflow-visible" style={{ minHeight: "220px" }}>
+                      {/* Grid lines */}
+                      {Array.from({ length: 4 }).map((_, idx) => {
+                        const y = 30 + idx * 50;
+                        return <line key={idx} x1="40" y1={y} x2="680" y2={y} stroke="#f1f5f9" strokeWidth="1.5" />;
+                      })}
+
+                      {/* Line & Area */}
+                      {(() => {
+                        const points = rangeRevenue.map((d, idx) => {
+                          const xSpace = 620 / Math.max(rangeRevenue.length - 1, 1);
+                          const x = 50 + idx * xSpace;
+                          const height = (d.revenue / maxRangeRevenue) * 160;
+                          const y = 200 - height;
+                          return { x, y };
+                        });
+
+                        const pathStr = points.reduce((acc, p, idx) => {
+                          if (idx === 0) return `M ${p.x} ${p.y}`;
+                          const prev = points[idx - 1];
+                          const cpX1 = prev.x + (p.x - prev.x) / 2;
+                          const cpY1 = prev.y;
+                          const cpX2 = prev.x + (p.x - prev.x) / 2;
+                          const cpY2 = p.y;
+                          return `${acc} C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${p.x} ${p.y}`;
+                        }, "");
+
+                        const areaPathStr = points.length > 1 
+                          ? `${pathStr} L ${points[points.length - 1].x} 200 L ${points[0].x} 200 Z`
+                          : "";
+
+                        return (
+                          <g>
+                            {points.length > 1 && (
+                              <>
+                                <path d={areaPathStr} fill="url(#lineAreaGrad)" />
+                                <path d={pathStr} fill="none" stroke="#6366f1" strokeWidth="3" strokeLinecap="round" />
+                              </>
+                            )}
+                            {points.map((p, idx) => (
+                              <g key={idx}>
+                                <circle cx={p.x} cy={p.y} r="4" fill="#ffffff" stroke="#6366f1" strokeWidth="2" />
+                              </g>
+                            ))}
+                          </g>
+                        );
+                      })()}
+
+                      {/* X labels */}
+                      {rangeRevenue.map((d, idx) => {
+                        const showLabelStep = Math.max(Math.ceil(rangeRevenue.length / 8), 1);
+                        if (idx % showLabelStep !== 0 && idx !== rangeRevenue.length - 1) return null;
+
+                        const xSpace = 620 / Math.max(rangeRevenue.length - 1, 1);
+                        const x = 50 + idx * xSpace;
+                        return (
+                          <text key={d.period} x={x} y="225" textAnchor="middle" fill="#64748b" className="text-[10px] font-bold">
+                            {d.period.length > 10 ? d.period.substring(5) : d.period}
+                          </text>
+                        );
+                      })}
+
+                      <line x1="40" y1="200" x2="680" y2="200" stroke="#cbd5e1" strokeWidth="2" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+
+              {/* Bảng chi tiết */}
+              <div className="border border-slate-100 rounded-2xl p-5 bg-white overflow-hidden flex flex-col justify-between">
+                <h4 className="text-sm font-bold text-slate-700 mb-4">Chi tiết số liệu thống kê</h4>
+                <div className="max-h-64 overflow-y-auto pr-1">
+                  <Table>
+                    <TableHeader className="bg-slate-50/80 sticky top-0 z-10">
+                      <TableRow>
+                        <TableHead className="w-12 text-center text-xs font-bold text-slate-500">STT</TableHead>
+                        <TableHead className="text-xs font-bold text-slate-500">Thời gian</TableHead>
+                        <TableHead className="text-right text-xs font-bold text-slate-500">Doanh thu</TableHead>
+                        <TableHead className="text-center text-xs font-bold text-slate-500">Số đơn hàng</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {isRangeRevenueLoading ? (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center py-8 text-xs text-slate-400 font-medium">
+                            <Loader2 className="h-4 w-4 animate-spin inline mr-2" />
+                            Đang tải bảng số liệu...
+                          </TableCell>
+                        </TableRow>
+                      ) : !rangeRevenue || rangeRevenue.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center py-8 text-xs text-slate-400 font-medium">
+                            Không có dữ liệu
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        rangeRevenue.map((item, idx) => (
+                          <TableRow key={item.period} className="hover:bg-slate-50/50">
+                            <TableCell className="text-center text-xs text-slate-500 font-semibold">{idx + 1}</TableCell>
+                            <TableCell className="text-xs text-slate-700 font-bold">{item.period}</TableCell>
+                            <TableCell className="text-right text-xs font-bold text-indigo-600">{formatVND(item.revenue)}</TableCell>
+                            <TableCell className="text-center text-xs text-slate-700 font-bold">{item.orders.toLocaleString()}</TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-extrabold text-slate-800">
+                  <span>Tổng kỳ: {rangeRevenue?.length || 0} mốc</span>
+                  <div className="flex gap-4">
+                    <span>Doanh thu: <span className="text-indigo-600">{formatVND(totalRangeRevenue)}</span></span>
+                    <span>Đơn hàng: <span>{totalRangeOrders}</span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Revenue Monthly Chart Section */}

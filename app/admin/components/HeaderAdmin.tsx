@@ -132,8 +132,8 @@ export default function HeaderAdmin() {
             </div>
             <div className="py-2">
               <Link
-                href="/admin/profile"
-                className="w-full block px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-3"
+                href={`${role === "ADMIN" ? `/admin/profile` : `/instructor/profile`}`}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 <User className="w-4 h-4" />
                 Hồ sơ cá nhân
