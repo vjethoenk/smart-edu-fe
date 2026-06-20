@@ -84,7 +84,8 @@ const QuizDetailPage = () => {
 
   // Đếm ngược thời gian (tính bằng giây)
   const limitSeconds = quiz?.limitTime ? quiz.limitTime * 60 : 0;
-  const [timeLeft, setTimeLeft] = useState<number>(limitSeconds);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const displayTimeLeft = timeLeft !== null ? timeLeft : limitSeconds;
   const hasAutoSubmitted = useRef(false);
 
   // Cập nhật timeLeft khi quiz data load xong
@@ -99,11 +100,12 @@ const QuizDetailPage = () => {
     if (limitSeconds <= 0) return; // không giới hạn thì không đếm
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev <= 1) {
+        const current = prev !== null ? prev : limitSeconds;
+        if (current <= 1) {
           clearInterval(timer);
           return 0;
         }
-        return prev - 1;
+        return current - 1;
       });
     }, 1000);
     return () => clearInterval(timer);
@@ -111,7 +113,7 @@ const QuizDetailPage = () => {
 
   // Tự nộp bài khi hết giờ
   useEffect(() => {
-    if (limitSeconds > 0 && timeLeft === 0 && !hasAutoSubmitted.current) {
+    if (limitSeconds > 0 && timeLeft !== null && timeLeft === 0 && !hasAutoSubmitted.current) {
       hasAutoSubmitted.current = true;
       handleSubmitRef.current();
     }
@@ -248,20 +250,20 @@ const QuizDetailPage = () => {
 
             <Card className={cn(
               "border-white/10 backdrop-blur-sm transition-all",
-              limitSeconds > 0 && timeLeft <= 60
+              limitSeconds > 0 && displayTimeLeft <= 60
                 ? "bg-red-500/15 border-red-500/30 animate-pulse"
                 : "bg-white/5 hover:bg-white/10",
             )}>
               <CardContent className="p-4 flex items-center gap-3">
                 <div className={cn(
                   "p-2 rounded-lg",
-                  limitSeconds > 0 && timeLeft <= 60
+                  limitSeconds > 0 && displayTimeLeft <= 60
                     ? "bg-red-500/30"
                     : "bg-blue-500/20",
                 )}>
                   <Timer className={cn(
                     "w-5 h-5",
-                    limitSeconds > 0 && timeLeft <= 60
+                    limitSeconds > 0 && displayTimeLeft <= 60
                       ? "text-red-400"
                       : "text-blue-400",
                   )} />
@@ -269,18 +271,18 @@ const QuizDetailPage = () => {
                 <div>
                   <p className={cn(
                     "text-sm",
-                    limitSeconds > 0 && timeLeft <= 60
+                    limitSeconds > 0 && displayTimeLeft <= 60
                       ? "text-red-300"
                       : "text-purple-300",
                   )}>Thời gian còn lại</p>
                   <p className={cn(
                     "text-2xl font-bold tabular-nums",
-                    limitSeconds > 0 && timeLeft <= 60
+                    limitSeconds > 0 && displayTimeLeft <= 60
                       ? "text-red-400"
                       : "text-white",
                   )}>
                     {limitSeconds > 0
-                      ? formatTimeLeft(timeLeft)
+                      ? formatTimeLeft(displayTimeLeft)
                       : "Không giới hạn"}
                   </p>
                 </div>
