@@ -45,7 +45,7 @@ function CertificateCardGrid({
     e.stopPropagation();
     navigator.clipboard.writeText(cert.certificateCode);
     setCopied(true);
-    toast.success("Đã sao chép mã chứng chỉ!");
+    toast.success("Đã sao chép mã giấy khen!");
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -115,7 +115,7 @@ function CertificateCardGrid({
               onClick={() => onView(cert)}
             >
               <Eye className="w-3.5 h-3.5 mr-1" />
-              Xem chứng chỉ
+              Xem giấy khen
             </Button>
             <Button
               size="sm"
@@ -303,7 +303,7 @@ function CertificateModal({
           {iframeLoading && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-100 z-10 gap-3">
               <div className="w-12 h-12 rounded-full border-3 border-indigo-200 border-t-indigo-500 animate-spin" />
-              <p className="text-sm text-slate-500">Đang tải chứng chỉ...</p>
+              <p className="text-sm text-slate-500">Đang tải giấy khen...</p>
             </div>
           )}
           <div
@@ -314,7 +314,7 @@ function CertificateModal({
               src={certViewUrl}
               className="w-full min-w-[600px] md:min-w-full"
               style={{ height: "calc(75vh - 80px)" }}
-              title={`Chứng chỉ - ${cert.courseId?.title}`}
+              title={`giấy khen - ${cert.courseId?.title}`}
               onLoad={() => setIframeLoading(false)}
             />
           </div>
@@ -396,7 +396,7 @@ function HeroBanner() {
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-              Chứng chỉ của tôi
+              giấy khen của tôi
             </h1>
 
             <p className="text-indigo-100 text-base sm:text-lg max-w-xl mx-auto lg:mx-0 leading-relaxed">
@@ -445,7 +445,7 @@ function HeroBanner() {
                   </div>
 
                   <p className="text-indigo-100 font-medium mb-3">
-                    Chứng chỉ đã đạt được
+                    giấy khen đã đạt được
                   </p>
 
                   <div className="h-px bg-white/20 my-4" />
@@ -531,7 +531,7 @@ export default function MyCertificatesPage() {
             <Award className="w-10 h-10 text-red-300" />
           </div>
           <h2 className="text-xl font-bold text-slate-800 mb-2">
-            Không thể tải chứng chỉ
+            Không thể tải giấy khen
           </h2>
           <p className="text-slate-500 mb-6">Vui lòng thử lại sau</p>
           <Button
@@ -599,7 +599,7 @@ export default function MyCertificatesPage() {
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 rounded-full">
                     <Shield className="w-4 h-4 text-indigo-500" />
                     <span className="text-indigo-700 font-medium">
-                      {certificates.length} chứng chỉ
+                      {certificates.length} giấy khen
                     </span>
                   </div>
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 rounded-full">
@@ -631,12 +631,12 @@ export default function MyCertificatesPage() {
                 <Award className="w-12 h-12 text-indigo-300" />
               </div>
               <h2 className="text-xl font-semibold text-slate-700 mb-2">
-                {search ? "Không tìm thấy kết quả" : "Chưa có chứng chỉ nào"}
+                {search ? "Không tìm thấy kết quả" : "Chưa có giấy khen nào"}
               </h2>
               <p className="text-slate-400 mb-6 max-w-md mx-auto">
                 {search
-                  ? `Không tìm thấy chứng chỉ phù hợp với "${search}"`
-                  : "Hoàn thành các khóa học để nhận chứng chỉ"}
+                  ? `Không tìm thấy giấy khen phù hợp với "${search}"`
+                  : "Hoàn thành các khóa học để nhận giấy khen"}
               </p>
               {!search && (
                 <Button

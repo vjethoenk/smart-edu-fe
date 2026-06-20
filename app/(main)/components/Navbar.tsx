@@ -43,7 +43,7 @@ function UserMenu() {
           </Link>
 
           <Link href="/my-certificates" className="px-4 py-2 hover:bg-gray-100">
-            Chứng chỉ của tôi
+            giấy khen của tôi
           </Link>
 
           {role === "ADMIN" && (

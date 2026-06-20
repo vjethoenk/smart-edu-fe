@@ -95,7 +95,7 @@ export default function CertificateModal({
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
-      toast.success("Đã sao chép liên kết chứng chỉ");
+      toast.success("Đã sao chép liên kết giấy khen");
     } catch {
       toast.error("Không thể sao chép liên kết");
     }
@@ -117,8 +117,8 @@ export default function CertificateModal({
 
   const handleShareEmail = () => {
     window.open(
-      `mailto:?subject=${encodeURIComponent(`Chứng chỉ hoàn thành khóa học SmartEdu - ${certificate.courseId.title}`)}&body=${encodeURIComponent(
-        `Xin chào,\n\nTôi vừa hoàn thành khóa học "${certificate.courseId.title}" trên nền tảng SmartEdu và nhận được chứng chỉ danh giá này.\n\nXem thông tin chứng nhận của tôi tại đây: ${shareUrl}\n\nTrân trọng!`,
+      `mailto:?subject=${encodeURIComponent(`giấy khen hoàn thành khóa học SmartEdu - ${certificate.courseId.title}`)}&body=${encodeURIComponent(
+        `Xin chào,\n\nTôi vừa hoàn thành khóa học "${certificate.courseId.title}" trên nền tảng SmartEdu và nhận được giấy khen danh giá này.\n\nXem thông tin chứng nhận của tôi tại đây: ${shareUrl}\n\nTrân trọng!`,
       )}`,
       "_blank",
     );
@@ -135,7 +135,7 @@ export default function CertificateModal({
             🎉 Chúc mừng hoàn thành khóa học!
           </DialogTitle>
           <DialogDescription className="text-slate-500 text-sm">
-            Chứng chỉ của bạn đã sẵn sàng
+            giấy khen của bạn đã sẵn sàng
           </DialogDescription>
         </DialogHeader>
 

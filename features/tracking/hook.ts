@@ -22,7 +22,13 @@ export const useCreateTracking = () => {
         }
 
         // Only invalidate course progress on progress-changing events to prevent excessive fetches during heartbeats
-        const isProgressChangingEvent = ["close", "end", "complete", "passed", "submit"].includes(trackingData?.event);
+        const isProgressChangingEvent = [
+          "close",
+          "end",
+          "complete",
+          "passed",
+          "submit",
+        ].includes(trackingData?.event);
         if (courseId && isProgressChangingEvent) {
           queryClient.invalidateQueries({
             queryKey: ["courseProgress", courseId],
@@ -33,7 +39,7 @@ export const useCreateTracking = () => {
       }
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Có lỗi xảy ra");
+      //toast.error(error?.response?.data?.message || "Có lỗi xảy ra");
     },
   });
 };

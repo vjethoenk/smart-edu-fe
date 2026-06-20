@@ -20,7 +20,7 @@ const features = [
   },
   {
     icon: ShieldCheck,
-    title: "Chứng chỉ uy tín",
+    title: "giấy khen uy tín",
     description:
       "Sở hữu chứng nhận được các tập đoàn hàng đầu công nhận sau mỗi khóa học hoàn tất.",
     bg: "bg-indigo-100",

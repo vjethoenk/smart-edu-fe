@@ -1,14 +1,14 @@
-# Xây dựng giao diện Chứng chỉ Hoàn thành khóa học cho hệ thống SmartEdu
+# Xây dựng giao diện giấy khen Hoàn thành khóa học cho hệ thống SmartEdu
 
-Hãy đóng vai Senior Frontend Developer và xây dựng giao diện chức năng Chứng chỉ hoàn thành khóa học cho hệ thống E-Learning SmartEdu bằng:
+Hãy đóng vai Senior Frontend Developer và xây dựng giao diện chức năng giấy khen hoàn thành khóa học cho hệ thống E-Learning SmartEdu bằng:
 
-* React 19
-* TypeScript
-* TailwindCSS
-* Shadcn UI
-* React Query
-* Axios
-* React Router DOM
+- React 19
+- TypeScript
+- TailwindCSS
+- Shadcn UI
+- React Query
+- Axios
+- React Router DOM
 
 Yêu cầu code production-ready, responsive và UI hiện đại.
 
@@ -16,7 +16,7 @@ Yêu cầu code production-ready, responsive và UI hiện đại.
 
 # API Backend
 
-## Nhận chứng chỉ
+## Nhận giấy khen
 
 GET /certificates/course/:courseId
 
@@ -31,7 +31,7 @@ Response:
 ```json
 {
   "statusCode": 200,
-  "message": "Nhận chứng chỉ thành công!",
+  "message": "Nhận giấy khen thành công!",
   "data": {
     "_id": "647a32e185c",
     "certificateCode": "SE-2026-4829-9182",
@@ -49,7 +49,7 @@ Response:
 
 ---
 
-## Xem chứng chỉ
+## Xem giấy khen
 
 GET /certificates/:code/view
 
@@ -61,7 +61,7 @@ http://localhost:8000/certificates/SE-2026-4829-9182/view
 
 ---
 
-## Xác thực chứng chỉ
+## Xác thực giấy khen
 
 GET /certificates/verify/:code
 
@@ -82,7 +82,7 @@ Response:
 
 ---
 
-# Chức năng 1: Nút nhận chứng chỉ
+# Chức năng 1: Nút nhận giấy khen
 
 Trong trang học khóa học:
 
@@ -91,15 +91,15 @@ Nếu progress = 100%
 Hiển thị button:
 
 ```text
-🎓 Nhận chứng chỉ hoàn thành
+🎓 Nhận giấy khen hoàn thành
 ```
 
 UI:
 
-* Nút nổi bật
-* Gradient xanh tím
-* Có icon Award/Lucide
-* Hover animation
+- Nút nổi bật
+- Gradient xanh tím
+- Có icon Award/Lucide
+- Hover animation
 
 Khi click:
 
@@ -113,7 +113,7 @@ Mở modal chúc mừng.
 
 ---
 
-# Chức năng 2: Modal chứng chỉ
+# Chức năng 2: Modal giấy khen
 
 Tạo component:
 
@@ -129,14 +129,14 @@ Hiển thị:
 
 Thông tin:
 
-* Tên học viên
-* Tên khóa học
-* Ngày cấp
-* Mã chứng chỉ
+- Tên học viên
+- Tên khóa học
+- Ngày cấp
+- Mã giấy khen
 
 ---
 
-Preview chứng chỉ:
+Preview giấy khen:
 
 ```tsx
 <img
@@ -147,19 +147,19 @@ Preview chứng chỉ:
 
 Yêu cầu:
 
-* Responsive
-* Border đẹp
-* Shadow
-* Zoom nhẹ khi hover
+- Responsive
+- Border đẹp
+- Shadow
+- Zoom nhẹ khi hover
 
 ---
 
-# Chức năng 3: Tải PDF / In chứng chỉ
+# Chức năng 3: Tải PDF / In giấy khen
 
 Button:
 
 ```text
-📄 Tải PDF / In chứng chỉ
+📄 Tải PDF / In giấy khen
 ```
 
 Khi click:
@@ -167,7 +167,7 @@ Khi click:
 ```typescript
 const printWindow = window.open(
   `${API_URL}/certificates/${certificateCode}/view`,
-  "_blank"
+  "_blank",
 );
 
 if (printWindow) {
@@ -181,12 +181,12 @@ Hiển thị loading trong khi mở.
 
 ---
 
-# Chức năng 4: Chia sẻ chứng chỉ
+# Chức năng 4: Chia sẻ giấy khen
 
 Button:
 
 ```text
-🔗 Chia sẻ chứng chỉ
+🔗 Chia sẻ giấy khen
 ```
 
 Link:
@@ -197,22 +197,22 @@ https://smartedu.com/verify-certificate?code=SE-2026-4829-9182
 
 Hỗ trợ:
 
-* Copy link
-* LinkedIn
-* Facebook
-* Email
+- Copy link
+- LinkedIn
+- Facebook
+- Email
 
 Sau khi copy:
 
 ```text
-Đã sao chép liên kết chứng chỉ
+Đã sao chép liên kết giấy khen
 ```
 
 Sử dụng toast của Shadcn UI.
 
 ---
 
-# Chức năng 5: Trang xác thực chứng chỉ
+# Chức năng 5: Trang xác thực giấy khen
 
 Route:
 
@@ -239,15 +239,15 @@ Nếu hợp lệ
 Hiển thị:
 
 ```text
-✅ Chứng chỉ hợp lệ
+✅ giấy khen hợp lệ
 ```
 
 Card thông tin:
 
-* Học viên
-* Khóa học
-* Mã chứng chỉ
-* Ngày cấp
+- Học viên
+- Khóa học
+- Mã giấy khen
+- Ngày cấp
 
 Kèm icon ShieldCheck.
 
@@ -258,24 +258,23 @@ Nếu không hợp lệ
 Hiển thị:
 
 ```text
-❌ Chứng chỉ không tồn tại hoặc đã bị thu hồi
+❌ giấy khen không tồn tại hoặc đã bị thu hồi
 ```
 
 Kèm icon AlertTriangle.
 
-
 Yêu cầu sinh đầy đủ:
 
-* TypeScript Types
-* Axios Service
-* React Query Hooks
-* Shadcn Dialog
-* Toast Notification
-* Responsive UI
-* TailwindCSS Styling
-* Loading State
-* Error State
-* Verify Certificate Page
-* Certificate Modal
-* Share Certificate Component
-* Production Ready Source Code
+- TypeScript Types
+- Axios Service
+- React Query Hooks
+- Shadcn Dialog
+- Toast Notification
+- Responsive UI
+- TailwindCSS Styling
+- Loading State
+- Error State
+- Verify Certificate Page
+- Certificate Modal
+- Share Certificate Component
+- Production Ready Source Code

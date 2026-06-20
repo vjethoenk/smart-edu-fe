@@ -63,7 +63,7 @@ const PaymentSuccess = () => {
 
           <CardFooter className="flex flex-col gap-3 pb-8 pt-0 px-6 border-0">
             <Button
-              onClick={() => router.push("/my-courses")}
+              onClick={() => router.push("/course")}
               className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-2.5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 gap-2 group"
             >
               <span>Vào học ngay</span>

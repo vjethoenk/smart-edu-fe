@@ -173,7 +173,7 @@ const VideoModal = (props: IPops) => {
               <video
                 src={form.videoUrl}
                 controls
-                className="h-48 w-full rounded-lg object-cover border border-slate-200"
+                className="h-96 w-full rounded-lg object-cover border border-slate-200"
               />
             ) : null}
           </div>

@@ -1,16 +1,38 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useGetCart, useGetCartTotal, useRemoveFromCart, useClearCart } from "@/features/cart/hook";
-import { useCreatePayment, useCancelPayment, usePaymentStatus } from "@/features/payment/hook";
+import {
+  useGetCart,
+  useGetCartTotal,
+  useRemoveFromCart,
+  useClearCart,
+} from "@/features/cart/hook";
+import {
+  useCreatePayment,
+  useCancelPayment,
+  usePaymentStatus,
+} from "@/features/payment/hook";
 import { formatVND } from "@/hooks/formatVND";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Trash2, ShoppingCart, ArrowRight, Clock, Shield, CreditCard,
-  Gift, XCircle, X, Smartphone, CheckCircle, Loader2,
-  Lock, Package, ChevronRight, AlertCircle,
+  Trash2,
+  ShoppingCart,
+  ArrowRight,
+  Clock,
+  Shield,
+  CreditCard,
+  Gift,
+  XCircle,
+  X,
+  Smartphone,
+  CheckCircle,
+  Loader2,
+  Lock,
+  Package,
+  ChevronRight,
+  AlertCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -51,9 +73,9 @@ function PaymentStep({
           setError(true);
           toast.error(`Không thể tạo thanh toán cho "${item.courseId?.title}"`);
         },
-      }
+      },
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item._id]);
 
   // Poll trạng thái
@@ -67,7 +89,10 @@ function PaymentStep({
   }, [paymentStatus, item._id, onPaid]);
 
   const handleCancel = () => {
-    if (!paymentData?.orderCode) { onCancel(); return; }
+    if (!paymentData?.orderCode) {
+      onCancel();
+      return;
+    }
     cancelPayment(paymentData.orderCode, { onSuccess: () => onCancel() });
   };
 
@@ -75,8 +100,12 @@ function PaymentStep({
     return (
       <div className="flex flex-col items-center gap-3 py-6 text-center">
         <AlertCircle className="w-10 h-10 text-red-400" />
-        <p className="text-gray-600 text-sm">Không thể tạo thanh toán cho khóa học này.</p>
-        <Button size="sm" variant="outline" onClick={onCancel}>Bỏ qua</Button>
+        <p className="text-gray-600 text-sm">
+          Không thể tạo thanh toán cho khóa học này.
+        </p>
+        <Button size="sm" variant="outline" onClick={onCancel}>
+          Bỏ qua
+        </Button>
       </div>
     );
   }
@@ -95,7 +124,9 @@ function PaymentStep({
       {/* Amount */}
       <div className="text-center">
         <p className="text-sm text-gray-500 mb-1">Số tiền cần thanh toán</p>
-        <p className="text-3xl font-bold text-gray-800">{formatVND(item.price)}</p>
+        <p className="text-3xl font-bold text-gray-800">
+          {formatVND(item.price)}
+        </p>
       </div>
 
       {/* QR Code */}
@@ -120,7 +151,9 @@ function PaymentStep({
       {/* Hint */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
         <p className="text-xs text-amber-800">
-          <span className="font-semibold">📌 Hướng dẫn:</span> Mở app ngân hàng hoặc ví điện tử, chọn &quot;Quét mã QR&quot; và quét mã bên trên. Hệ thống tự động xác nhận sau khi nhận được thanh toán.
+          <span className="font-semibold">📌 Hướng dẫn:</span> Mở app ngân hàng
+          hoặc ví điện tử, chọn &quot;Quét mã QR&quot; và quét mã bên trên. Hệ
+          thống tự động xác nhận sau khi nhận được thanh toán.
         </p>
       </div>
 
@@ -161,21 +194,24 @@ function MultiPaymentModal({
   const totalPaid = paidIds.length;
   const totalItems = items.length;
 
-  const handlePaid = useCallback((cartItemId: string) => {
-    const newPaidIds = [...paidIds, cartItemId];
-    setPaidIds(newPaidIds);
+  const handlePaid = useCallback(
+    (cartItemId: string) => {
+      const newPaidIds = [...paidIds, cartItemId];
+      setPaidIds(newPaidIds);
 
-    const nextIndex = currentIndex + 1;
-    if (nextIndex >= totalItems) {
-      setIsDone(true);
-      onAllDone(newPaidIds);
-    } else {
-      setCurrentIndex(nextIndex);
-    }
-  }, [paidIds, currentIndex, totalItems, onAllDone]);
+      const nextIndex = currentIndex + 1;
+      if (nextIndex >= totalItems) {
+        setIsDone(true);
+        onAllDone(newPaidIds);
+      } else {
+        setCurrentIndex(nextIndex);
+      }
+    },
+    [paidIds, currentIndex, totalItems, onAllDone],
+  );
 
   const handleSkip = useCallback(() => {
-    setSkippedIds(prev => [...prev, currentItem._id]);
+    setSkippedIds((prev) => [...prev, currentItem._id]);
     const nextIndex = currentIndex + 1;
     if (nextIndex >= totalItems) {
       setIsDone(true);
@@ -187,7 +223,12 @@ function MultiPaymentModal({
 
   const handleClose = () => {
     if (!isDone && paidIds.length < totalItems) {
-      if (!window.confirm("Bạn có chắc muốn thoát? Các khóa học chưa thanh toán sẽ vẫn ở trong giỏ.")) return;
+      if (
+        !window.confirm(
+          "Bạn có chắc muốn thoát? Các khóa học chưa thanh toán sẽ vẫn ở trong giỏ.",
+        )
+      )
+        return;
     }
     onClose();
   };
@@ -228,7 +269,9 @@ function MultiPaymentModal({
             <motion.div
               className="h-full bg-white rounded-full"
               initial={{ width: 0 }}
-              animate={{ width: `${isDone ? 100 : (currentIndex / totalItems) * 100}%` }}
+              animate={{
+                width: `${isDone ? 100 : (currentIndex / totalItems) * 100}%`,
+              }}
               transition={{ duration: 0.4, ease: "easeOut" }}
             />
           </div>
@@ -264,16 +307,30 @@ function MultiPaymentModal({
                   src={item.courseId?.thumbnail || "/placeholder.png"}
                   alt={item.courseId?.title}
                   className="w-8 h-8 rounded-lg object-cover flex-shrink-0"
-                  onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.png"; }}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/placeholder.png";
+                  }}
                 />
-                <p className={`text-xs font-medium line-clamp-1 flex-1 ${
-                  isCurrent ? "text-indigo-700" : isPaid ? "text-green-700 line-through" : "text-gray-600"
-                }`}>
+                <p
+                  className={`text-xs font-medium line-clamp-1 flex-1 ${
+                    isCurrent
+                      ? "text-indigo-700"
+                      : isPaid
+                        ? "text-green-700 line-through"
+                        : "text-gray-600"
+                  }`}
+                >
                   {item.courseId?.title || "Khóa học"}
                 </p>
-                <span className={`text-xs font-semibold flex-shrink-0 ${
-                  isPaid ? "text-green-600" : isCurrent ? "text-indigo-600" : "text-gray-400"
-                }`}>
+                <span
+                  className={`text-xs font-semibold flex-shrink-0 ${
+                    isPaid
+                      ? "text-green-600"
+                      : isCurrent
+                        ? "text-indigo-600"
+                        : "text-gray-400"
+                  }`}
+                >
                   {formatVND(item.price)}
                 </span>
               </div>
@@ -293,13 +350,16 @@ function MultiPaymentModal({
                 <CheckCircle className="w-9 h-9 text-green-500" />
               </div>
               <h4 className="text-xl font-bold text-gray-800 mb-1">
-                {totalPaid > 0 ? "Thanh toán hoàn tất!" : "Không có thanh toán nào"}
+                {totalPaid > 0
+                  ? "Thanh toán hoàn tất!"
+                  : "Không có thanh toán nào"}
               </h4>
               <p className="text-gray-500 text-sm mb-6">
                 {totalPaid > 0
                   ? `${totalPaid} khóa học đã được kích hoạt thành công.`
                   : "Bạn đã bỏ qua tất cả các bước thanh toán."}
-                {skippedIds.length > 0 && ` ${skippedIds.length} khóa học bị bỏ qua.`}
+                {skippedIds.length > 0 &&
+                  ` ${skippedIds.length} khóa học bị bỏ qua.`}
               </p>
               <Button
                 onClick={onClose}
@@ -323,7 +383,9 @@ function MultiPaymentModal({
                     src={currentItem.courseId?.thumbnail || "/placeholder.png"}
                     alt={currentItem.courseId?.title}
                     className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-                    onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.png"; }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/placeholder.png";
+                    }}
                   />
                   <div className="min-w-0">
                     <p className="text-xs text-gray-500">Đang thanh toán</p>
@@ -381,7 +443,9 @@ function SinglePaymentModal({
             </div>
             <div>
               <h3 className="font-bold text-lg">Thanh toán VietQR</h3>
-              <p className="text-xs opacity-90 line-clamp-1">{item.courseId?.title || "Khóa học"}</p>
+              <p className="text-xs opacity-90 line-clamp-1">
+                {item.courseId?.title || "Khóa học"}
+              </p>
             </div>
           </div>
         </div>
@@ -399,14 +463,20 @@ function SinglePaymentModal({
 export default function CartPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { data: cartItems, isLoading: isCartLoading, isError: isCartError } = useGetCart();
+  const {
+    data: cartItems,
+    isLoading: isCartLoading,
+    isError: isCartError,
+  } = useGetCart();
   const { data: cartTotalData, isLoading: isTotalLoading } = useGetCartTotal();
   const { mutate: removeFromCart, isPending: isRemoving } = useRemoveFromCart();
   const { mutate: clearCart, isPending: isClearing } = useClearCart();
 
   // Modal state
   const [multiPaymentOpen, setMultiPaymentOpen] = useState(false);
-  const [singlePaymentItem, setSinglePaymentItem] = useState<ICartItem | null>(null);
+  const [singlePaymentItem, setSinglePaymentItem] = useState<ICartItem | null>(
+    null,
+  );
 
   const handleRemoveItem = (id: string) => {
     removeFromCart(id, {
@@ -425,33 +495,43 @@ export default function CartPage() {
   };
 
   // Callback sau khi 1 khóa được trả tiền thành công
-  const handleSinglePaid = useCallback((cartItemId: string) => {
-    setSinglePaymentItem(null);
-    removeFromCart(cartItemId, {
-      onSuccess: () => {
-        toast.success("🎉 Thanh toán thành công! Khóa học đã được kích hoạt.");
-        queryClient.invalidateQueries({ queryKey: ["enrollments"] });
-        queryClient.invalidateQueries({ queryKey: ["my-courses"] });
-      },
-    });
-  }, [removeFromCart, queryClient]);
-
-  // Callback khi multi-payment hoàn tất
-  const handleMultiAllDone = useCallback((paidIds: string[]) => {
-    if (paidIds.length === 0) return;
-
-    // Xóa tuần tự các item đã thanh toán
-    paidIds.forEach((id) => {
-      removeFromCart(id, {
+  const handleSinglePaid = useCallback(
+    (cartItemId: string) => {
+      setSinglePaymentItem(null);
+      removeFromCart(cartItemId, {
         onSuccess: () => {
+          toast.success(
+            "🎉 Thanh toán thành công! Khóa học đã được kích hoạt.",
+          );
           queryClient.invalidateQueries({ queryKey: ["enrollments"] });
           queryClient.invalidateQueries({ queryKey: ["my-courses"] });
         },
       });
-    });
+    },
+    [removeFromCart, queryClient],
+  );
 
-    toast.success(`🎉 ${paidIds.length} khóa học đã được thanh toán và kích hoạt!`);
-  }, [removeFromCart, queryClient]);
+  // Callback khi multi-payment hoàn tất
+  const handleMultiAllDone = useCallback(
+    (paidIds: string[]) => {
+      if (paidIds.length === 0) return;
+
+      // Xóa tuần tự các item đã thanh toán
+      paidIds.forEach((id) => {
+        removeFromCart(id, {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["enrollments"] });
+            queryClient.invalidateQueries({ queryKey: ["my-courses"] });
+          },
+        });
+      });
+
+      toast.success(
+        `🎉 ${paidIds.length} khóa học đã được thanh toán và kích hoạt!`,
+      );
+    },
+    [removeFromCart, queryClient],
+  );
 
   const isLoading = isCartLoading || isTotalLoading;
 
@@ -480,9 +560,16 @@ export default function CartPage() {
           <div className="bg-red-50 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
             <XCircle className="w-12 h-12 text-red-500" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-3">Không thể tải giỏ hàng</h2>
-          <p className="text-gray-500 mb-6">Có lỗi xảy ra khi tải dữ liệu giỏ hàng của bạn</p>
-          <Button onClick={() => window.location.reload()} className="rounded-full px-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-3">
+            Không thể tải giỏ hàng
+          </h2>
+          <p className="text-gray-500 mb-6">
+            Có lỗi xảy ra khi tải dữ liệu giỏ hàng của bạn
+          </p>
+          <Button
+            onClick={() => window.location.reload()}
+            className="rounded-full px-8"
+          >
             Thử lại
           </Button>
         </div>
@@ -503,7 +590,10 @@ export default function CartPage() {
             className="text-center"
           >
             <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-full w-40 h-40 flex items-center justify-center mx-auto mb-8 shadow-inner">
-              <ShoppingCart className="w-20 h-20 text-gray-400" strokeWidth={1.5} />
+              <ShoppingCart
+                className="w-20 h-20 text-gray-400"
+                strokeWidth={1.5}
+              />
             </div>
             <h2 className="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-4">
               Giỏ hàng trống
@@ -537,7 +627,9 @@ export default function CartPage() {
               <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
                 Giỏ hàng
               </h1>
-              <p className="text-gray-500 mt-2">Quản lý các khóa học bạn muốn mua</p>
+              <p className="text-gray-500 mt-2">
+                Quản lý các khóa học bạn muốn mua
+              </p>
             </div>
 
             <div className="flex items-center gap-3">
@@ -575,10 +667,15 @@ export default function CartPage() {
                           {/* Image */}
                           <div className="sm:w-48 h-36 sm:h-auto relative overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 flex-shrink-0">
                             <img
-                              src={item.courseId?.thumbnail || "/placeholder.png"}
+                              src={
+                                item.courseId?.thumbnail || "/placeholder.png"
+                              }
                               alt={item.courseId?.title || "Khóa học"}
                               className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                              onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.png"; }}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src =
+                                  "/placeholder.png";
+                              }}
                             />
                             <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors duration-300" />
                           </div>
@@ -595,10 +692,14 @@ export default function CartPage() {
 
                                 <div className="flex items-center gap-2 mb-3">
                                   <div className="bg-green-50 px-2 py-1 rounded-lg">
-                                    <span className="text-green-700 text-xs font-medium">Học trọn đời</span>
+                                    <span className="text-green-700 text-xs font-medium">
+                                      Học trọn đời
+                                    </span>
                                   </div>
                                   <div className="bg-blue-50 px-2 py-1 rounded-lg">
-                                    <span className="text-blue-700 text-xs font-medium">Chứng chỉ hoàn thành</span>
+                                    <span className="text-blue-700 text-xs font-medium">
+                                      giấy khen hoàn thành
+                                    </span>
                                   </div>
                                 </div>
                               </div>
@@ -645,8 +746,12 @@ export default function CartPage() {
                 <Card className="rounded-2xl border-0 shadow-xl overflow-hidden p-0">
                   {/* Header */}
                   <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
-                    <h3 className="text-xl font-bold text-white">Tổng đơn hàng</h3>
-                    <p className="text-indigo-100 text-sm mt-1">Thông tin thanh toán chi tiết</p>
+                    <h3 className="text-xl font-bold text-white">
+                      Tổng đơn hàng
+                    </h3>
+                    <p className="text-indigo-100 text-sm mt-1">
+                      Thông tin thanh toán chi tiết
+                    </p>
                   </div>
 
                   <CardContent className="p-6">
@@ -687,16 +792,22 @@ export default function CartPage() {
                       {/* Final Total */}
                       <div className="flex justify-between items-center pt-2">
                         <div>
-                          <span className="font-bold text-gray-900 text-lg">Tổng cộng</span>
+                          <span className="font-bold text-gray-900 text-lg">
+                            Tổng cộng
+                          </span>
                           {totalDiscount > 0 && (
-                            <p className="text-xs text-green-600 mt-1">Đã bao gồm giảm giá</p>
+                            <p className="text-xs text-green-600 mt-1">
+                              Đã bao gồm giảm giá
+                            </p>
                           )}
                         </div>
                         <div className="text-right">
                           <div className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                             {formatVND(finalTotal)}
                           </div>
-                          <div className="text-xs text-gray-400 mt-1">Đã bao gồm VAT</div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            Đã bao gồm VAT
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -716,7 +827,9 @@ export default function CartPage() {
                     {cartItems.length > 1 && (
                       <div className="mt-3 flex items-center justify-center gap-2 text-xs text-indigo-600 bg-indigo-50 rounded-lg py-2 px-3">
                         <Package className="w-3.5 h-3.5" />
-                        <span>Thanh toán từng khóa tuần tự, tự động chuyển tiếp</span>
+                        <span>
+                          Thanh toán từng khóa tuần tự, tự động chuyển tiếp
+                        </span>
                       </div>
                     )}
 

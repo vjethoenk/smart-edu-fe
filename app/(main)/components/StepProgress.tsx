@@ -18,8 +18,8 @@ const steps = [
   },
   {
     number: "04",
-    title: "Nhận chứng chỉ",
-    description: "Khẳng định năng lực với chứng chỉ chuyên nghiệp.",
+    title: "Nhận giấy khen",
+    description: "Khẳng định năng lực với giấy khen chuyên nghiệp.",
   },
 ];
 

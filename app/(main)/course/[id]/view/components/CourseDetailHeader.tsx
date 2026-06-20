@@ -64,7 +64,7 @@ export default function CourseDetailHeader({
                 </Badge>
                 <Badge variant="outline" className="rounded-full text-xs">
                   <GraduationCap className="w-3 h-3 mr-1" />
-                  Có chứng chỉ
+                  Có giấy khen
                 </Badge>
               </div>
               <h1 className="text-2xl md:text-3xl font-bold text-slate-800 leading-tight">
@@ -104,7 +104,7 @@ export default function CourseDetailHeader({
             <p className="text-xs text-slate-500 mt-2">
               {progressValue === 100
                 ? "Hoàn thành xuất sắc! 🎉"
-                : `${100 - Math.round(progressValue)}% nữa để nhận chứng chỉ`}
+                : `${100 - Math.round(progressValue)}% nữa để nhận giấy khen`}
             </p>
           </div> */}
           <CourseProgress courseId={course._id} />
@@ -175,7 +175,7 @@ export default function CourseDetailHeader({
                 {[
                   "Kiến thức nền tảng vững chắc",
                   "Thực hành qua dự án thực tế",
-                  "Nhận chứng chỉ sau khóa học",
+                  "Nhận giấy khen sau khóa học",
                   "Hỗ trợ trực tiếp từ giảng viên",
                 ].map((item, idx) => (
                   <div

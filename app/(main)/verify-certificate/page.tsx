@@ -5,7 +5,13 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useVerifyCertificate } from "@/features/certificate/hook";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   ShieldCheck,
   AlertTriangle,
@@ -31,7 +37,9 @@ function VerifyCertificateContent() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputCode.trim()) {
-      router.push(`/verify-certificate?code=${encodeURIComponent(inputCode.trim())}`);
+      router.push(
+        `/verify-certificate?code=${encodeURIComponent(inputCode.trim())}`,
+      );
     }
   };
 
@@ -46,9 +54,11 @@ function VerifyCertificateContent() {
             <div className="mx-auto w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-3">
               <Award className="w-7 h-7" />
             </div>
-            <CardTitle className="text-xl font-bold text-slate-800">Xác thực Chứng chỉ</CardTitle>
+            <CardTitle className="text-xl font-bold text-slate-800">
+              Xác thực giấy khen
+            </CardTitle>
             <CardDescription className="text-slate-500">
-              Nhập mã chứng chỉ SmartEdu để kiểm tra tính hợp lệ.
+              Nhập mã giấy khen SmartEdu để kiểm tra tính hợp lệ.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -92,7 +102,7 @@ function VerifyCertificateContent() {
           <CardContent className="h-64 flex flex-col items-center justify-center gap-3">
             <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
             <p className="text-slate-600 font-medium animate-pulse">
-              Đang xác thực thông tin chứng chỉ...
+              Đang xác thực thông tin giấy khen...
             </p>
           </CardContent>
         </Card>
@@ -107,10 +117,10 @@ function VerifyCertificateContent() {
               <ShieldCheck className="w-9 h-9 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-emerald-800">
-              Chứng chỉ hợp lệ
+              giấy khen hợp lệ
             </h2>
             <p className="text-emerald-600 text-sm">
-              Chứng chỉ này đã được xác thực chính thức bởi hệ thống SmartEdu
+              giấy khen này đã được xác thực chính thức bởi hệ thống SmartEdu
             </p>
           </div>
 
@@ -122,7 +132,9 @@ function VerifyCertificateContent() {
                   <User className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400 font-medium">Học viên được cấp</p>
+                  <p className="text-xs text-slate-400 font-medium">
+                    Học viên được cấp
+                  </p>
                   <p className="text-lg font-bold text-slate-800">
                     {certificate.studentName}
                   </p>
@@ -148,7 +160,9 @@ function VerifyCertificateContent() {
                   <Award className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400 font-medium">Mã số chứng chỉ</p>
+                  <p className="text-xs text-slate-400 font-medium">
+                    Mã số giấy khen
+                  </p>
                   <p className="font-mono text-base font-semibold text-slate-800 tracking-wider">
                     {certificate.certificateCode}
                   </p>
@@ -163,11 +177,14 @@ function VerifyCertificateContent() {
                 <div>
                   <p className="text-xs text-slate-400 font-medium">Ngày cấp</p>
                   <p className="text-base font-semibold text-slate-800">
-                    {new Date(certificate.issuedAt).toLocaleDateString("vi-VN", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
+                    {new Date(certificate.issuedAt).toLocaleDateString(
+                      "vi-VN",
+                      {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      },
+                    )}
                   </p>
                 </div>
               </div>
@@ -176,13 +193,19 @@ function VerifyCertificateContent() {
             <div className="border-t border-slate-100 pt-6 flex flex-col sm:flex-row gap-3">
               <Button
                 onClick={() => {
-                  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-                  const base = apiBase.endsWith("/v1") ? apiBase : `${apiBase}/v1`;
-                  window.open(`${base}/certificates/${certificate.certificateCode}/view`, "_blank");
+                  const apiBase =
+                    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                  const base = apiBase.endsWith("/v1")
+                    ? apiBase
+                    : `${apiBase}/v1`;
+                  window.open(
+                    `${base}/certificates/${certificate.certificateCode}/view`,
+                    "_blank",
+                  );
                 }}
                 className="flex-1 py-5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-md shadow-indigo-100"
               >
-                <ExternalLink className="w-4 h-4 mr-2" /> Xem ảnh chứng chỉ
+                <ExternalLink className="w-4 h-4 mr-2" /> Xem ảnh giấy khen
               </Button>
               <Button
                 variant="outline"
@@ -207,16 +230,18 @@ function VerifyCertificateContent() {
               <AlertTriangle className="w-9 h-9 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-rose-800">
-              Chứng chỉ không tồn tại hoặc bị thu hồi
+              giấy khen không tồn tại hoặc bị thu hồi
             </h2>
             <p className="text-rose-600 text-sm">
-              Mã chứng chỉ này không khớp với bất kỳ chứng nhận hợp lệ nào trong hệ thống của chúng tôi
+              Mã giấy khen này không khớp với bất kỳ chứng nhận hợp lệ nào trong
+              hệ thống của chúng tôi
             </p>
           </div>
 
           <CardContent className="p-6 md:p-8 space-y-4">
             <p className="text-sm text-slate-500 text-center">
-              Vui lòng kiểm tra lại mã số chứng chỉ được in trên văn bản hoặc liên hệ với bộ phận hỗ trợ học viên của SmartEdu để được trợ giúp.
+              Vui lòng kiểm tra lại mã số giấy khen được in trên văn bản hoặc
+              liên hệ với bộ phận hỗ trợ học viên của SmartEdu để được trợ giúp.
             </p>
 
             <form onSubmit={handleSearch} className="space-y-4 pt-2">
@@ -224,7 +249,7 @@ function VerifyCertificateContent() {
                 <Input
                   value={inputCode}
                   onChange={(e) => setInputCode(e.target.value)}
-                  placeholder="Nhập mã chứng chỉ khác..."
+                  placeholder="Nhập mã giấy khen khác..."
                   className="pl-10 pr-4 py-6 rounded-2xl border-slate-200 focus:border-rose-500 focus:ring-rose-500 font-mono text-sm tracking-wider"
                 />
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -263,7 +288,9 @@ export default function VerifyCertificatePage() {
         fallback={
           <div className="max-w-md mx-auto py-12 text-center space-y-3">
             <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mx-auto" />
-            <p className="text-slate-500 font-medium">Đang tải trang xác thực...</p>
+            <p className="text-slate-500 font-medium">
+              Đang tải trang xác thực...
+            </p>
           </div>
         }
       >

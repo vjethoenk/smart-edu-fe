@@ -22,7 +22,10 @@ import { LessonVideo } from "./content/LessonVideo";
 import LessonPdf from "./content/LessonPdf";
 import LessonQuiz from "./content/LessonQuiz";
 import { useGetCourseProgress } from "@/features/tracking/hook";
-import { useGetCertificateByCourse, useClaimCertificate } from "@/features/certificate/hook";
+import {
+  useGetCertificateByCourse,
+  useClaimCertificate,
+} from "@/features/certificate/hook";
 import CertificateModal from "./CertificateModal";
 import { toast } from "sonner";
 
@@ -101,11 +104,15 @@ export default function LessonPreview({
   const isCompleted = Math.round(progressPercent) === 100;
 
   // Check if certificate already exists
-  const { data: existingCertificate } = useGetCertificateByCourse(courseId, isCompleted);
+  const { data: existingCertificate } = useGetCertificateByCourse(
+    courseId,
+    isCompleted,
+  );
   const claimCertificateMutation = useClaimCertificate();
 
   // Active certificate data
-  const certificateData = existingCertificate?.data || claimCertificateMutation.data?.data;
+  const certificateData =
+    existingCertificate?.data || claimCertificateMutation.data?.data;
 
   const handleClaimCertificate = () => {
     if (certificateData) {
@@ -118,7 +125,11 @@ export default function LessonPreview({
         setIsModalOpen(true);
       },
       onError: (err: any) => {
-        toast.error(err?.response?.data?.message || err?.message || "Không thể nhận chứng chỉ");
+        toast.error(
+          err?.response?.data?.message ||
+            err?.message ||
+            "Không thể nhận giấy khen",
+        );
       },
     });
   };
@@ -212,7 +223,7 @@ export default function LessonPreview({
                   ) : (
                     <>
                       <Award className="w-4 h-4 mr-2 animate-pulse" />
-                      Nhận chứng chỉ hoàn thành
+                      Nhận giấy khen hoàn thành
                     </>
                   )}
                 </Button>
@@ -221,7 +232,8 @@ export default function LessonPreview({
                   variant="outline"
                   className="rounded-full border-slate-300 cursor-default"
                 >
-                  <CheckCircle className="w-4 h-4 mr-2 text-slate-400" /> Hoàn thành
+                  <CheckCircle className="w-4 h-4 mr-2 text-slate-400" /> Hoàn
+                  thành
                 </Button>
               )}
               <Button
@@ -253,4 +265,3 @@ export default function LessonPreview({
     </div>
   );
 }
-
