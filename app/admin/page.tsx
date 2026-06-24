@@ -978,7 +978,7 @@ export default function AdminDashboard() {
                 return (
                   <div className="divide-y divide-slate-50">
                     {courses.map((course, index) => {
-                      console.log("Course:", courses);
+                      //console.log("Course:", courses);
                       const numberMetric =
                         topCoursesType === "revenue"
                           ? // display total revenue = revenue per sale * number of sales

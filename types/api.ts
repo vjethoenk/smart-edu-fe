@@ -100,7 +100,7 @@ export interface IQuiz {
   _id?: string;
   title: string;
   description: string;
-  courseId: string;
+  courseId?: string;
   questions: object[];
   limitTime: number;
   passScore: number;
