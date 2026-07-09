@@ -12,10 +12,16 @@ export function decodeJWT(token: string): {
       return { payload: null, isExpired: true };
     }
 
-    // Decode the payload (second part)
-    const payload = JSON.parse(
-      Buffer.from(parts[1], "base64").toString("utf-8"),
+    // Decode the payload (second part) safely on both client, server and Edge runtime
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
     );
+    const payload = JSON.parse(jsonPayload);
 
     // Check if token is expired
     if (payload.exp) {

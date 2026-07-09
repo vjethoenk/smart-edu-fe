@@ -24,8 +24,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { ApprovalStatus } from "@/features/course/enum";
 import { CourseModal } from "@/app/admin/courses/components/CourseModal";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store/type";
+import { useAppSelector } from "@/store/hook";
 
 const CoursePage = () => {
   const router = useRouter();
@@ -33,11 +32,11 @@ const CoursePage = () => {
   const { data: categories } = useGetCategories();
   const updateApproval = useUpdateApprovalCourse();
   const deleteMutation = useDeleteCourse();
-  const { user } = useSelector((state: RootState) => state.auth);
+  const { user } = useAppSelector((state) => state.auth);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<ICourse | null>(null);
 
-  const courseData = courses?.filter((c) => c.createBy.email === user.email);
+  const courseData = courses?.filter((c) => c.createBy.email === user?.email);
 
   const handleDeleteCourse = (id: string) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa khóa học này?")) {

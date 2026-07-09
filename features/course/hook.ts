@@ -20,6 +20,8 @@ export const useGetCourses = () => {
       console.log("API Response:", res);
       return res?.data ?? [];
     },
+    staleTime: 5 * 60 * 1000, // Dữ liệu khóa học ít thay đổi, cache trong 5 phút
+    gcTime: 15 * 60 * 1000, // Cache trong garbage collector 15 phút
   });
 };
 
@@ -30,6 +32,9 @@ export const useGetByIdCourse = (id: string) => {
       const res = await getCoursesByIdApi(id);
       return res.data;
     },
+    enabled: !!id, // Chỉ fetch khi có ID khóa học hợp lệ
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
   });
 };
 

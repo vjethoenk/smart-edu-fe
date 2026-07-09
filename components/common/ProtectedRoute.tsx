@@ -1,8 +1,8 @@
 "use client";
 
-import { useSelector } from "react-redux";
+import { useAppSelector } from "@/store/hook";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 
 export default function ProtectedRoute({
@@ -13,15 +13,29 @@ export default function ProtectedRoute({
   allowedRoles: string[];
 }) {
   const router = useRouter();
-  const reduxRole = useSelector((state: any) => state.auth.role);
+  const { role: reduxRole, isInitializing } = useAppSelector((state) => state.auth);
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   const currentRole = reduxRole || Cookies.get("role");
 
   useEffect(() => {
-    if (!currentRole || !allowedRoles.includes(currentRole)) {
-      router.push("/unauthorized");
+    if (!isInitializing) {
+      if (!currentRole || !allowedRoles.includes(currentRole)) {
+        router.push("/unauthorized");
+      } else {
+        setIsAuthorized(true);
+      }
     }
-  }, [currentRole]);
+  }, [currentRole, isInitializing, allowedRoles, router]);
+
+  // Trong khi khởi tạo thông tin đăng nhập hoặc chưa được phân quyền, hiển thị loading spinner
+  if (isInitializing || !isAuthorized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+      </div>
+    );
+  }
 
   return <>{children}</>;
 }

@@ -19,21 +19,21 @@ export default function ClientWrapper({
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    
+    // Chỉ hiển thị splash screen tải lần đầu trên trang chủ
+    if (pathname === "/") {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 1200); // Đợi splash screen chạy mượt mà
+      return () => clearTimeout(timer);
+    } else {
+      setIsLoading(false);
+    }
+  }, []); // Chỉ chạy một lần duy nhất khi ứng dụng tải lần đầu (mount)
 
   const handleFinishLoading = () => setIsLoading(false);
 
   const isHomePage = pathname === "/";
-
-  useEffect(() => {
-    setIsLoading(true);
-
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [pathname]);
 
   if (!isClient) return <div className="opacity-0">Loading...</div>;
 

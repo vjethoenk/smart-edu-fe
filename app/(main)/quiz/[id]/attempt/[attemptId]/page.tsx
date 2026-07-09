@@ -9,10 +9,10 @@ import {
   CheckCircle2,
   AlertCircle,
   Sparkles,
-  Timer,
   Layers,
   HelpCircle,
 } from "lucide-react";
+import QuizTimer from "./components/QuizTimer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -82,49 +82,7 @@ const QuizDetailPage = () => {
   const { mutate: submitQuiz } = useSubmitQuiz();
   const { mutate: sendTrackingEvent } = useCreateTracking();
 
-  // Đếm ngược thời gian (tính bằng giây)
-  const limitSeconds = quiz?.limitTime ? quiz.limitTime * 60 : 0;
-  const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  const displayTimeLeft = timeLeft !== null ? timeLeft : limitSeconds;
-  const hasAutoSubmitted = useRef(false);
-
-  // Cập nhật timeLeft khi quiz data load xong
-  useEffect(() => {
-    if (limitSeconds > 0) {
-      setTimeLeft(limitSeconds);
-    }
-  }, [limitSeconds]);
-
-  // Interval đếm ngược
-  useEffect(() => {
-    if (limitSeconds <= 0) return; // không giới hạn thì không đếm
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        const current = prev !== null ? prev : limitSeconds;
-        if (current <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return current - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [limitSeconds]);
-
-  // Tự nộp bài khi hết giờ
-  useEffect(() => {
-    if (limitSeconds > 0 && timeLeft !== null && timeLeft === 0 && !hasAutoSubmitted.current) {
-      hasAutoSubmitted.current = true;
-      handleSubmitRef.current();
-    }
-  }, [timeLeft, limitSeconds]);
-
-  // Format thời gian còn lại thành MM:SS
-  const formatTimeLeft = useCallback((seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  }, []);
+  // Logic đếm ngược và tự động nộp bài đã được cô lập hoàn toàn trong component QuizTimer
 
   const handleChooseAnswer = (questionId: string, selectedAnswer: string) => {
     saveAnswer({
@@ -248,44 +206,9 @@ const QuizDetailPage = () => {
               </CardContent>
             </Card>
 
-            <Card className={cn(
-              "border-white/10 backdrop-blur-sm transition-all",
-              limitSeconds > 0 && displayTimeLeft <= 60
-                ? "bg-red-500/15 border-red-500/30 animate-pulse"
-                : "bg-white/5 hover:bg-white/10",
-            )}>
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className={cn(
-                  "p-2 rounded-lg",
-                  limitSeconds > 0 && displayTimeLeft <= 60
-                    ? "bg-red-500/30"
-                    : "bg-blue-500/20",
-                )}>
-                  <Timer className={cn(
-                    "w-5 h-5",
-                    limitSeconds > 0 && displayTimeLeft <= 60
-                      ? "text-red-400"
-                      : "text-blue-400",
-                  )} />
-                </div>
-                <div>
-                  <p className={cn(
-                    "text-sm",
-                    limitSeconds > 0 && displayTimeLeft <= 60
-                      ? "text-red-300"
-                      : "text-purple-300",
-                  )}>Thời gian còn lại</p>
-                  <p className={cn(
-                    "text-2xl font-bold tabular-nums",
-                    limitSeconds > 0 && displayTimeLeft <= 60
-                      ? "text-red-400"
-                      : "text-white",
-                  )}>
-                    {limitSeconds > 0
-                      ? formatTimeLeft(displayTimeLeft)
-                      : "Không giới hạn"}
-                  </p>
-                </div>
+            <Card className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all">
+              <CardContent className="p-4">
+                <QuizTimer limitTime={quiz.limitTime} onTimeUp={handleSubmit} />
               </CardContent>
             </Card>
 

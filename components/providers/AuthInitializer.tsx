@@ -37,7 +37,7 @@ export default function AuthInitializer({
         dispatch(
           setAuth({
             user,
-            role: user.role?.name,
+            role: user.role?.name ?? null,
           }),
         );
       })

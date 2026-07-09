@@ -1,7 +1,8 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { IUser } from "@/types/api";
 
 interface AuthState {
-  user: any;
+  user: IUser | null;
   role: string | null;
   isInitializing: boolean;
 }
@@ -16,7 +17,13 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    setAuth: (state, action) => {
+    setAuth: (
+      state,
+      action: PayloadAction<{
+        user: IUser;
+        role: string | null;
+      }>,
+    ) => {
       state.user = action.payload.user;
       state.role = action.payload.role;
       state.isInitializing = false;
@@ -26,7 +33,7 @@ const authSlice = createSlice({
       state.role = null;
       state.isInitializing = false;
     },
-    setInitializing: (state, action) => {
+    setInitializing: (state, action: PayloadAction<boolean>) => {
       state.isInitializing = action.payload;
     },
   },
